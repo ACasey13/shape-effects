@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    {% if title %}
+    <title>{{ title }}</title>
+    {% else %}
+    <title> Shape Effects </title>
+    {% endif %}
+  </head>
+  <body>
+    <div class="header">
+      <a href="{{ url_for('index') }}"><img src="../static/imgs/long-logo-white.svg" alt="Home"></a>
+      {% if current_user.is_anonymous %}
+      <a href="{{ url_for('user_login') }}" class="login">Login</a>
+      {% else %}
+      <a href="{{ url_for('user_logout') }}" class="login">Logout</a>
+      {% endif %}
+    </div>
+    <div class="mainbody">
+      {% with messages = get_flashed_messages() %}
+          {% if messages %}
+          <br>
+          <hr>
+              <ul>
+                  {% for message in messages %}
+                  <li>{{ message }}</li>
+                  {% endfor %}
+              </ul>
+          <hr>
+          <br>
+          {% endif %}
+      {% endwith %}
+
+      {% block body %}{% endblock %}
+    </div>
+  </body>
+</html>

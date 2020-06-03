@@ -1,0 +1,27 @@
+body, html {
+  margin: 0px;
+  font-family: sans-serif;
+}
+
+h1 {
+  color: #707070;
+}
+
+.header {
+  background-color: #303030;
+  padding: 1em;
+}
+
+.login {
+  color: #cccccc;
+  float: right;
+  text-decoration: inherit;
+}
+
+.login:hover {
+  color: #ccccaa;
+}
+
+.mainbody {
+    margin: 1em 2em;
+}

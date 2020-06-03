@@ -2,7 +2,8 @@ from flask import Flask, render_template, request
 from flask import redirect, flash, url_for
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin
-from flask_login import current_user, login_user, logout_user
+from flask_login import current_user, login_user
+from flask_login import logout_user, login_required
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.urls import url_parse
@@ -63,31 +64,10 @@ def user_logout():
     logout_user()
     return redirect(url_for('index'))
 
-@app.route('/delete/<int:id>')
-def delete(id):
-    task_to_delete = Todo.query.get_or_404(id)
-
-    try:
-        db.session.delete(task_to_delete)
-        db.session.commit()
-        return redirect('/')
-
-    except:
-        return "Failed to delete task {}".format(task_to_delete.content)
-
-@app.route('/update/<int:id>', methods=['GET', 'POST'])
-def update(id):
-    task = Todo.query.get_or_404(id)
-    if request.method == 'POST':
-        task.content = request.form['content']
-        try:
-            db.session.commit()
-            return redirect('/')
-
-        except:
-            return "Failed to update task!"
-    else:
-        return render_template('update.html', task=task)
+@app.route('/explore')
+@login_required
+def explore():
+    return "this the explore page"
 
 if __name__ == "__main__":
     app.run(debug=True)

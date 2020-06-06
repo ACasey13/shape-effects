@@ -9,6 +9,9 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.urls import url_parse
 from forms import LoginForm
 from flask_bootstrap import Bootstrap
+import os
+import numpy as np
+import utils
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///main.db'
@@ -67,7 +70,81 @@ def user_logout():
 @app.route('/explore')
 @login_required
 def explore():
-    return "this the explore page"
+    return render_template('explore.html', title="Explore")
+
+@app.route('/background')
+def background():
+    return render_template('background.html', title='Background')
+
+@app.route('/models')
+def models():
+    return render_template('models.html', title='Models')
+
+@app.route('/data', methods=['POST'])
+@login_required
+def get_pore():
+    id = request.form.get('id')
+    size = request.form.get('d')
+    if id is not None:
+        pore = np.load(os.path.join('data', 'desc_300nm.npy'))[int(id)-1]
+        json_path = utils.get_path(pore, diameter=size,
+                                   subsample=5)
+        response = app.response_class(
+        response=json_path,
+        status=200,
+        mimetype='application/json')
+        return response
+
+@app.route('/default')
+def get_default():
+    pore = np.load(os.path.join('data', 'desc_300nm.npy'))[2]
+    json_path = utils.get_path(pore, diameter=300,
+                               subsample=5)
+    response = app.response_class(
+    response=json_path,
+    status=200,
+    mimetype='application/json')
+    return response
+
+@app.route('/pred_default')
+def pred_default():
+    pass
+    # response = app.response_class(
+    # response=json_path,
+    # status=200,
+    # mimetype='application/json')
+    # return response
+
+@app.route('/predict')
+@login_required
+def predict():
+    pass
+    # response = app.response_class(
+    # response=json_path,
+    # status=200,
+    # mimetype='application/json')
+    # return response
+
+@app.route('/rotate', methods=['POST'])
+def rotate_pore():
+    pass
+
+@app.route('/filter', methods=['POST'])
+def filter_pore():
+    resp = request.json
+    n_h = int(resp['n_h'])
+    path = np.asarray([[pt['x'], pt['y']] for pt in resp['data']]).T / (10**4)
+    perim = utils.get_perim(path[0], path[1], total_only=False)
+    path_x = np.interp(np.linspace(0,perim[-1],1024), perim, path[0])
+    path_y = np.interp(np.linspace(0,perim[-1],1024), perim, path[1])
+    path = np.vstack((path_x, path_y))[:,:-1]
+    desc = utils.get_desc(path)
+    json_path = utils.get_path(desc, n_h=n_h)
+    response = app.response_class(
+    response=json_path,
+    status=200,
+    mimetype='application/json')
+    return response
 
 if __name__ == "__main__":
     app.run(debug=True)

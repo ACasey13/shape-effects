@@ -1,10 +1,69 @@
 {% extends "base.html" %}
 
+{% block app_header %}
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/chart.js@2.9.3/dist/Chart.min.js">
+</script>
+<script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@0.7.7"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-dragdata@latest/dist/chartjs-plugin-dragdata.min.js"></script>
+<link rel="stylesheet" href="/../static/css/main.css">
+{% endblock %}
+
+{% block app_scripts %}
+<script type="text/javascript" src="{{ url_for('static', filename='js/index.js') }}"></script>
+{% endblock %}
+
 {% block app_body %}
   <h1>Main Page</h1>
-  <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+  <p>Some text explaining what everything does...</p>
 
-  <div style="margin: 0em 5em">
-  <canvas id="myChart" width="100" height="100">
-  </canvas></div>
+  <!-- <div style="margin: 0em 5em"> -->
+  <div class="row">
+    <div class="col-md-2 col-12" style="padding-top: 1em;">
+      <div class="form-group">
+
+          <b class="flabel">Pore Size</b>
+          <div class="form-check form-check-inline">
+  <input class="form-check-input" type="radio" name="sizeselect" id="inlineRadio1" value="150" disabled>
+  <label class="form-check-label" for="inlineRadio1">150nm</label>
+</div>
+<div class="form-check form-check-inline">
+  <input class="form-check-input" type="radio" name="sizeselect" id="inlineRadio2" value="300" checked="checked">
+  <label class="form-check-label" for="inlineRadio2">300nm</label>
+</div>
+<label for="poreID" class="flabel"><b>Pore ID</b></label>
+    <input type="text" class="form-control subpad" id="poreID" placeholder="1-6152" value="3" disabled>
+<button id="fetch" type="button" class="btn btn-block btn-outline-primary">Fetch Pore</button>
+
+          <label for="nHarm" class="flabel"><b>Number of Harmonics</b></label>
+              <input type="text" class="form-control subpad" id="nHarm" placeholder="1-1023" value="1023">
+              <button id="b_filter" type="button" class="btn btn-block btn-outline-primary">Filter Pore</button>
+
+              <label for="rotation" class="flabel"><b>Rotate (deg)</b></label>
+                  <input type="text" class="form-control subpad" id="rotation" placeholder="0-360" value="0">
+
+      </div>
+    </div>
+    <div class="col-md-8 col-12">
+      <canvas id="myChart" width="100" height="100">
+      </canvas>
+      <button type="button" class="btn btn-outline-dark" id="b_reset_pore" >Reset Shape</button>
+      <button type="button" class="btn btn-outline-dark" id="b_reset_zoom" disabled>Reset Zoom</button>
+      <button type="button" class="btn btn-lg btn-outline-success" id="b_predict" style="float: right">Predict</button>
+      <button type="button" class="btn btn-outline-primary" id="b_rescale" style="float: right; margin-right: .2em;">Normalize</button>
+    </div>
+    <div class="col-md-2 col-12" style="padding-top: 1em;">
+      <b class="flabel">Critical Velocity (m/s)</b>
+      <b class="flabel" style="text-decoration: underline">Predicted</b>
+      <p>RF: <span id='rf'>20</span> <span class="blurred">XX</span> </p>
+      <p>XGBoost: <span id='xg'>20</span> <span class="blurred">XX</span> </p>
+      <p>GPR: <span id="gpr">21</span> <span class="blurred">XX</span> </p>
+      <p>CNN: <span id="cnn">19</span> <span class="blurred">XX</span> </p>
+      <div id="predicted">
+      <b class="flabel" style="text-decoration: underline">Actual</b>
+      <p><span id="pred"></span></p>
+      </div>
+
+    </div>
+</div>
 {% endblock %}

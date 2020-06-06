@@ -44,7 +44,7 @@ def get_path(descriptor, n_h='all', diameter=None, subsample=5):
     path = np.hstack((contour, contour[:,[0]]))*10**4
     path = [{'x': x, 'y': y} for x,y in zip(path[0], path[1])]
 
-    return json.dumps(path)
+    return path
 
 def scale_descriptors(descriptors, diameter=300):
     """ provide an array of descriptors and the target shape diameter (in nm)
@@ -64,7 +64,7 @@ def scale_descriptors(descriptors, diameter=300):
 
 def get_perim(x,y, total_only=True):
     """user provides the x, y coordinates of a CLOSED path, and this function
-    returns the total perimeter length. If the parameter 'total_only' is set to 
+    returns the total perimeter length. If the parameter 'total_only' is set to
     False, then the cumulative perimeter as each point is returned."""
 
     p = np.hstack((0,np.cumsum(np.sqrt(np.diff(x)**2 + np.diff(y)**2))))
@@ -82,3 +82,30 @@ def get_desc(path):
     c_eqi_par = np.add(x,1j*y)
     Y_c_par = np.fft.fftshift(np.fft.fft(c_eqi_par))
     return Y_c_par
+
+def sep_re_im(X):
+    """Given a descriptor, separate into real and imaginary parts
+    """
+    return np.hstack((np.real(X), np.imag(X)))
+
+def strip_harmonic(descriptor, n_h = None):
+    """Given a descriptor, strip off all of the harmonics except keep n_h.
+    """
+    # n_h is number of harmonics to keep
+    num_harm = descriptor.size
+    n_harm = int(np.floor(num_harm/2))
+
+    if n_h == None:
+        n_h = n_harm
+
+    #Reinitialize the Fourier spectrum
+    F_shift = np.fft.ifftshift(descriptor)
+
+    #Apply filter
+    low = 1+n_h
+    high = num_harm-n_h
+    if high - low > 0:
+        F_shift[low:high] = 0
+    descriptor_stripped = np.fft.fftshift(F_shift)[n_harm-n_h : n_harm+n_h+1]
+
+    return descriptor_stripped

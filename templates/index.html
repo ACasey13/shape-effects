@@ -10,7 +10,9 @@
 {% endblock %}
 
 {% block app_scripts %}
-<script type="text/javascript" src="{{ url_for('static', filename='js/index.js') }}"></script>
+<script type="module" src="{{ url_for('static', filename='js/index.js') }}"></script>
+<script type="module" src="{{ url_for('static', filename='js/utils.js') }}"></script>
+<script type="module" src="{{ url_for('static', filename='js/charting.js') }}"></script>
 {% endblock %}
 
 {% block app_body %}
@@ -40,7 +42,7 @@
               <button id="b_filter" type="button" class="btn btn-block btn-outline-primary">Filter Pore</button>
 
               <label for="rotation" class="flabel"><b>Rotate (deg)</b></label>
-                  <input type="text" class="form-control subpad" id="rotation" placeholder="0-360" value="0">
+                  <input type="text" class="form-control subpad" id="rotation" placeholder="0" value="0">
 
       </div>
     </div>
@@ -55,13 +57,13 @@
     <div class="col-md-2 col-12" style="padding-top: 1em;">
       <b class="flabel">Critical Velocity (m/s)</b>
       <b class="flabel" style="text-decoration: underline">Predicted</b>
-      <p>RF: <span id='rf'>20</span> <span class="blurred">XX</span> </p>
-      <p>XGBoost: <span id='xg'>20</span> <span class="blurred">XX</span> </p>
-      <p>GPR: <span id="gpr">21</span> <span class="blurred">XX</span> </p>
-      <p>CNN: <span id="cnn">19</span> <span class="blurred">XX</span> </p>
-      <div id="predicted">
+      <p>RF: <span id='rf'></span> <span class="blurred">XX</span> </p>
+      <p>XGBoost: <span id='xg'>TBD</span> <span class="blurred">XX</span> </p>
+      <p>GPR: <span id="gpr">TBD</span> <span class="blurred">XX</span> </p>
+      <p>CNN: <span id="cnn">TBD</span> <span class="blurred">XX</span> </p>
+      <div>
       <b class="flabel" style="text-decoration: underline">Actual</b>
-      <p><span id="pred"></span></p>
+      <p><span id="actual"></span></p>
       </div>
 
     </div>

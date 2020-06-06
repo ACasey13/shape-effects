@@ -12,6 +12,8 @@ from flask_bootstrap import Bootstrap
 import os
 import numpy as np
 import utils
+from joblib import load
+import json
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///main.db'
@@ -98,22 +100,33 @@ def get_pore():
 @app.route('/default')
 def get_default():
     pore = np.load(os.path.join('data', 'desc_300nm.npy'))[2]
-    json_path = utils.get_path(pore, diameter=300,
+    label = np.load(os.path.join('data', 'labels_300nm.npy'))[2]
+    path = utils.get_path(pore, diameter=300,
                                subsample=5)
     response = app.response_class(
-    response=json_path,
+    response=json.dumps({'path':path,'label':label}),
     status=200,
     mimetype='application/json')
     return response
 
-@app.route('/pred_default')
+@app.route('/pred_default', methods=['POST'])
 def pred_default():
-    pass
-    # response = app.response_class(
-    # response=json_path,
-    # status=200,
-    # mimetype='application/json')
-    # return response
+    resp = request.json
+    path = np.asarray([[pt['x'], pt['y']] for pt in resp['data']]).T / (10**4)
+    # need to start at +x, y=0....
+    perim = utils.get_perim(path[0], path[1], total_only=False)
+    path_x = np.interp(np.linspace(0,perim[-1],1024), perim, path[0])
+    path_y = np.interp(np.linspace(0,perim[-1],1024), perim, path[1])
+    path = np.vstack((path_x, path_y))[:,:-1]
+    desc = utils.get_desc(path)
+    X = utils.strip_harmonic(desc, n_h=30)
+    X = utils.sep_re_im(X)
+    rfr_pred = rfr.predict(X.reshape((1,-1)))[0]
+    response = app.response_class(
+    response=json.dumps({'rf': str(rfr_pred)[:2]}),
+    status=200,
+    mimetype='application/json')
+    return response
 
 @app.route('/predict')
 @login_required
@@ -147,4 +160,5 @@ def filter_pore():
     return response
 
 if __name__ == "__main__":
+    rfr = load(os.path.join('models','rfr.joblib'))
     app.run(debug=True)

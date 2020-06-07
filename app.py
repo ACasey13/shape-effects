@@ -14,10 +14,8 @@ from flask_bootstrap import Bootstrap
 import os
 import numpy as np
 import utils
-from joblib import load
 import json
-import GPy
-import keras.models
+os.environ['KERAS_BACKEND'] = 'theano'
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///main.db'
@@ -163,13 +161,14 @@ def pred_default():
     xgb_pred = xgb_300.predict(x)[0]
     gpr_pred, gpr_var = gpr_300.predict(x)
     gpr_pred = gpr_pred[0][0] + gpr_300_shift
-    #cnn_pred = cnn_300.predict(img)[0][0]
+    cnn_pred = cnn_300.predict(img)[0][0]
     response = app.response_class(
     response=json.dumps({'rf': str(rfr_pred)[:2],
                          'xgb': str(xgb_pred)[:2],
                          'gp': str(gpr_pred)[:2],
-                         #'cnn': str(cnn_pred)[:2],
-                         'cnn': 'tbd'}),
+                         'cnn': str(cnn_pred)[:2],
+                         #'cnn': 'tbd',
+                         }),
     status=200,
     mimetype='application/json')
     return response
@@ -187,14 +186,15 @@ def predict():
     gpr_pred, gpr_var = gpr_300.predict(x)
     gpr_pred = gpr_pred[0][0] + gpr_300_shift
     print('gpr_pred: {}'.format(gpr_pred))
-    #cnn_pred = cnn_300.predict(img)[0][0]
-    #print('cnn_pred: {}'.format(cnn_pred))
+    cnn_pred = cnn_300.predict(img)[0][0]
+    print('cnn_pred: {}'.format(cnn_pred))
     response = app.response_class(
     response=json.dumps({'rf': str(round(rfr_pred,1)),
                          'xgb': str(round(xgb_pred,1)),
                          'gp': str(round(gpr_pred,1)),
-                        # 'cnn': str(round(cnn_pred,1)),
-                         'cnn': 'tbd'}),
+                         'cnn': str(round(cnn_pred,1)),
+                         #'cnn': 'tbd',
+                         }),
     status=200,
     mimetype='application/json')
     return response
@@ -217,17 +217,4 @@ def filter_pore():
     return response
 
 if __name__ == "__main__":
-    rfr_300 = load(os.path.join('models','rfr_300nm.joblib'))
-    xgb_300 = load(os.path.join('models', 'xbr_300nm.joblib'))
-    gpr_300 = GPy.models.GPRegression(
-    np.load(os.path.join('models','gpr_X_300nm.npy')),
-    np.load(os.path.join('models', 'gpr_y_300nm.npy')),
-    initialize=False)
-    gpr_300.update_model(False)
-    gpr_300.initialize_parameter()
-    gpr_300[:] = np.load(os.path.join('models', 'gpr_300nm.npy'))
-    gpr_300.update_model(True)
-    gpr_300_shift = np.load(os.path.join('models', 'gpr_shift_300nm.npy'))
-    cnn_300 = keras.models.load_model(os.path.join('models','model.20.hdf5'))
-
     app.run(debug=True)

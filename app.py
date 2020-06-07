@@ -28,7 +28,9 @@ login = LoginManager(app)
 login.login_view = 'user_login'
 bootstrap = Bootstrap(app)
 
+print('loading models...')
 from load_models import *
+print('models loaded...')
 
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -161,12 +163,13 @@ def pred_default():
     xgb_pred = xgb_300.predict(x)[0]
     gpr_pred, gpr_var = gpr_300.predict(x)
     gpr_pred = gpr_pred[0][0] + gpr_300_shift
-    cnn_pred = cnn_300.predict(img)[0][0]
+    #cnn_pred = cnn_300.predict(img)[0][0]
     response = app.response_class(
     response=json.dumps({'rf': str(rfr_pred)[:2],
                          'xgb': str(xgb_pred)[:2],
                          'gp': str(gpr_pred)[:2],
-                         'cnn': str(cnn_pred)[:2]}),
+                         #'cnn': str(cnn_pred)[:2],
+                         'cnn': 'tbd'}),
     status=200,
     mimetype='application/json')
     return response
@@ -176,16 +179,22 @@ def pred_default():
 def predict():
     resp = request.json
     x, img = utils.preprocess_input(resp['data'], resp['size'], n_h=30)
+    print('data has been preprocessed')
     rfr_pred = rfr_300.predict(x)[0]
+    print('rf pred: {}'.format(rfr_pred))
     xgb_pred = xgb_300.predict(x)[0]
+    print('xgb_pred: {}'.format(xgb_pred))
     gpr_pred, gpr_var = gpr_300.predict(x)
     gpr_pred = gpr_pred[0][0] + gpr_300_shift
-    cnn_pred = cnn_300.predict(img)[0][0]
+    print('gpr_pred: {}'.format(gpr_pred))
+    #cnn_pred = cnn_300.predict(img)[0][0]
+    #print('cnn_pred: {}'.format(cnn_pred))
     response = app.response_class(
     response=json.dumps({'rf': str(round(rfr_pred,1)),
                          'xgb': str(round(xgb_pred,1)),
                          'gp': str(round(gpr_pred,1)),
-                         'cnn': str(round(cnn_pred,1))}),
+                        # 'cnn': str(round(cnn_pred,1)),
+                         'cnn': 'tbd'}),
     status=200,
     mimetype='application/json')
     return response

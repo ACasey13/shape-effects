@@ -2,6 +2,7 @@
 {% block head %}
 {{ super() }}
 <link rel="icon" href="{{ url_for('static', filename='imgs/se_ico.ico') }}" type="favicon/ico">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 {% block app_header %}{% endblock %}
 {% endblock %}
 
@@ -53,7 +54,32 @@
         {% endif %}
         {% endwith %}
 
-        {# application content needs to be provided in the app_content block #}
         {% block app_body %}{% endblock %}
     </div>
+
+    <!-- Footer -->
+    <footer class="page-footer fixed-bottom">
+
+      <div style="background-color: #343a40; margin-top: 2em; padding:.5em 0em">
+        <div class="container" style="text-align:center">
+
+
+              <!-- <h5 style="display: inline;color:#999999">Contact:</h5> -->
+<a href="mailto: alex.casey.13@gmail.com">
+<i class="fa fa-envelope" style="font-size:24px;color:#999999;margin-left:.5em;"></i></a>
+<a href="https://www.linkedin.com/in/caseyalex/">
+<i class="fa fa-linkedin-square" style="font-size:24px;color:#999999;margin-left:.5em"></i></a>
+
+        </div>
+      </div>
+
+
+      <!-- Copyright -->
+      <!-- <div class="footer-copyright text-center py-3">© 2020 Copyright:
+        <a href="https://mdbootstrap.com/"> MDBootstrap.com</a>
+      </div> -->
+      <!-- Copyright -->
+
+    </footer>
+    <!-- Footer -->
 {% endblock %}

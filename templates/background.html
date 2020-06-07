@@ -1,5 +1,16 @@
 {% extends "base.html" %}
 
 {% block app_body %}
-Motivation and CTH stuff will go here...
+<h2>Introduction</h2>
+<p>It is commonly accepted that the initiation of energetic materials occurs through energy localization near material heterogeneities. While initiation can stem from a variety of energy input mechanisms (impact, friction, etc.), under shock loading it is believed temperature spikes formed in the vicinity of microscopic collapsing pore spaces in the material play a crucial role in the initiation process.</p>
+
+<p>We simulated the shock loading of thousands of realistic pore shapes retrieved from the microstructure of an unspecified explosive using the hydrocode CTH. In the simulations, shock loading was applied via material contact with an incoming flyer plate. For each pore shape the flyer plate velocity is adjusted until a critical threshold velocity is calculated such that criticality is just achieved within an error of 1 m/s.</p>
+
+<p>The resulting critical threshold velocities were used as annotations to train machine learned models. With the machine learned models acting as surrogates to the hydrocode simulations, arbitrary pore shapes can be examined to gain insight as to how geometric features relate to shock sensitivity.</p>
+
+<h2>CTH</h2>
+
+<h2>Criticality</h2>
+
+
 {% endblock %}

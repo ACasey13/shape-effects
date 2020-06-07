@@ -1,3 +1,4 @@
+# app imports
 from flask import Flask, render_template, request
 from flask import redirect, flash, url_for
 from flask_sqlalchemy import SQLAlchemy
@@ -9,11 +10,14 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.urls import url_parse
 from forms import LoginForm
 from flask_bootstrap import Bootstrap
+# predictive model imports
 import os
 import numpy as np
 import utils
 from joblib import load
 import json
+import GPy
+import keras.models
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///main.db'
@@ -87,24 +91,62 @@ def models():
 def get_pore():
     id = request.form.get('id')
     size = request.form.get('d')
+    msg = ''
     if id is not None:
-        pore = np.load(os.path.join('data', 'desc_300nm.npy'))[int(id)-1]
-        json_path = utils.get_path(pore, diameter=size,
-                                   subsample=5)
+        id = int(id)
+        if size=='300':
+            if id>=1 and id<=6152:
+                pore = np.load(os.path.join('data', 'desc_300nm.npy'))[id-1]
+                act = np.load(os.path.join('data', 'labels_300nm.npy'))[id-1]
+                path = utils.get_pts(pore, diameter=300,
+                               subsample=5)
+                set = '(train)'
+                labels = ['', '', '', '', str(act)]
+            else:
+                msg = 'Pore index not valid!'
+        elif size=='150':
+            if id>=1 and id<=6285:
+                pore = np.load(os.path.join('data', 'desc_150nm.npy'))[id-1]
+                act = np.load(os.path.join('data', 'labels_150nm.npy'))[id-1]
+                path = utils.get_pts(pore, diameter=150,
+                               subsample=5)
+                set = '(train)'
+                labels = ['', '', '', '', str(act)]
+            else:
+                msg = 'Pore index not valid!'
+        else:
+            msg = 'Pore size not understood'
+    if msg:
         response = app.response_class(
-        response=json_path,
+        response=json.dumps({'path':[],
+                             'labels': [],
+                             'set': [],
+                             'msg': msg}),
         status=200,
         mimetype='application/json')
         return response
 
+
+    response = app.response_class(
+    response=json.dumps({'path':path,
+                         'labels': labels,
+                         'set': set}),
+    status=200,
+    mimetype='application/json')
+    return response
+
 @app.route('/default')
 def get_default():
     pore = np.load(os.path.join('data', 'desc_300nm.npy'))[2]
-    label = np.load(os.path.join('data', 'labels_300nm.npy'))[2]
-    path = utils.get_path(pore, diameter=300,
+    act = np.load(os.path.join('data', 'labels_300nm.npy'))[2]
+    path = utils.get_pts(pore, diameter=300,
                                subsample=5)
+    set = '(train)'
+    labels = ['', '', '', '', str(act)]
     response = app.response_class(
-    response=json.dumps({'path':path,'label':label}),
+    response=json.dumps({'path':path,
+                         'labels': labels,
+                         'set': set}),
     status=200,
     mimetype='application/json')
     return response
@@ -112,35 +154,39 @@ def get_default():
 @app.route('/pred_default', methods=['POST'])
 def pred_default():
     resp = request.json
-    path = np.asarray([[pt['x'], pt['y']] for pt in resp['data']]).T / (10**4)
-    # need to start at +x, y=0....
-    perim = utils.get_perim(path[0], path[1], total_only=False)
-    path_x = np.interp(np.linspace(0,perim[-1],1024), perim, path[0])
-    path_y = np.interp(np.linspace(0,perim[-1],1024), perim, path[1])
-    path = np.vstack((path_x, path_y))[:,:-1]
-    desc = utils.get_desc(path)
-    X = utils.strip_harmonic(desc, n_h=30)
-    X = utils.sep_re_im(X)
-    rfr_pred = rfr.predict(X.reshape((1,-1)))[0]
+    x, img = utils.preprocess_input(resp['data'], resp['size'], n_h=30)
+    rfr_pred = rfr_300.predict(x)[0]
+    xgb_pred = xgb_300.predict(x)[0]
+    gpr_pred, gpr_var = gpr_300.predict(x)
+    gpr_pred = gpr_pred[0][0] + gpr_300_shift
+    cnn_pred = cnn_300.predict(img)[0][0]
     response = app.response_class(
-    response=json.dumps({'rf': str(rfr_pred)[:2]}),
+    response=json.dumps({'rf': str(rfr_pred)[:2],
+                         'xgb': str(xgb_pred)[:2],
+                         'gp': str(gpr_pred)[:2],
+                         'cnn': str(cnn_pred)[:2]}),
     status=200,
     mimetype='application/json')
     return response
 
-@app.route('/predict')
+@app.route('/predict', methods=['POST'])
 @login_required
 def predict():
-    pass
-    # response = app.response_class(
-    # response=json_path,
-    # status=200,
-    # mimetype='application/json')
-    # return response
-
-@app.route('/rotate', methods=['POST'])
-def rotate_pore():
-    pass
+    resp = request.json
+    x, img = utils.preprocess_input(resp['data'], resp['size'], n_h=30)
+    rfr_pred = rfr_300.predict(x)[0]
+    xgb_pred = xgb_300.predict(x)[0]
+    gpr_pred, gpr_var = gpr_300.predict(x)
+    gpr_pred = gpr_pred[0][0] + gpr_300_shift
+    cnn_pred = cnn_300.predict(img)[0][0]
+    response = app.response_class(
+    response=json.dumps({'rf': str(round(rfr_pred,1)),
+                         'xgb': str(round(xgb_pred,1)),
+                         'gp': str(round(gpr_pred,1)),
+                         'cnn': str(round(cnn_pred,1))}),
+    status=200,
+    mimetype='application/json')
+    return response
 
 @app.route('/filter', methods=['POST'])
 def filter_pore():
@@ -152,7 +198,7 @@ def filter_pore():
     path_y = np.interp(np.linspace(0,perim[-1],1024), perim, path[1])
     path = np.vstack((path_x, path_y))[:,:-1]
     desc = utils.get_desc(path)
-    json_path = utils.get_path(desc, n_h=n_h)
+    json_path = json.dumps(utils.get_pts(desc, n_h=n_h))
     response = app.response_class(
     response=json_path,
     status=200,
@@ -160,5 +206,17 @@ def filter_pore():
     return response
 
 if __name__ == "__main__":
-    rfr = load(os.path.join('models','rfr.joblib'))
+    rfr_300 = load(os.path.join('models','rfr_300nm.joblib'))
+    xgb_300 = load(os.path.join('models', 'xbr_300nm.joblib'))
+    gpr_300 = GPy.models.GPRegression(
+    np.load(os.path.join('models','gpr_X_300nm.npy')),
+    np.load(os.path.join('models', 'gpr_y_300nm.npy')),
+    initialize=False)
+    gpr_300.update_model(False)
+    gpr_300.initialize_parameter()
+    gpr_300[:] = np.load(os.path.join('models', 'gpr_300nm.npy'))
+    gpr_300.update_model(True)
+    gpr_300_shift = np.load(os.path.join('models', 'gpr_shift_300nm.npy'))
+    cnn_300 = keras.models.load_model(os.path.join('models','model.20.hdf5'))
+
     app.run(debug=True)

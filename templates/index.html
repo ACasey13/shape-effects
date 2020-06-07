@@ -16,8 +16,12 @@
 {% endblock %}
 
 {% block app_body %}
-  <h1>Main Page</h1>
-  <p>Some text explaining what everything does...</p>
+  <h2>Effect of Pore Morphology on Shock Sensitivity</h2>
+  <p>We simulated the shock loading of thousands of realistic pore shapes retrieved from the microstructure of an unspecified explosive using the hydrocode CTH.</p>
+
+  <p>The resulting critical threshold velocities were used as annotations to train machine learned models.</p>
+
+  <p>The following tool allows users to explore pore geometries, perturb their contours, and view the model predictions for critical threshold velocities. <i>Note, the full set of pore geometries and the precise prediction values are only accessible through the <a href="/explore">Full Features</a> page to users with provided credentials.</i></p>
 
   <!-- <div style="margin: 0em 5em"> -->
   <div class="row">
@@ -38,7 +42,7 @@
 <button id="fetch" type="button" class="btn btn-block btn-outline-primary">Fetch Pore</button>
 
           <label for="nHarm" class="flabel"><b>Number of Harmonics</b></label>
-              <input type="text" class="form-control subpad" id="nHarm" placeholder="1-1023" value="1023">
+              <input type="text" class="form-control subpad" id="nHarm" placeholder="1-511" value="511">
               <button id="b_filter" type="button" class="btn btn-block btn-outline-primary">Filter Pore</button>
 
               <label for="rotation" class="flabel"><b>Rotate (deg)</b></label>
@@ -57,15 +61,16 @@
     <div class="col-md-2 col-12" style="padding-top: 1em;">
       <b class="flabel">Critical Velocity (m/s)</b>
       <b class="flabel" style="text-decoration: underline">Predicted</b>
-      <p>RF: <span id='rf'></span> <span class="blurred">XX</span> </p>
-      <p>XGBoost: <span id='xg'>TBD</span> <span class="blurred">XX</span> </p>
-      <p>GPR: <span id="gpr">TBD</span> <span class="blurred">XX</span> </p>
-      <p>CNN: <span id="cnn">TBD</span> <span class="blurred">XX</span> </p>
+      <p>RF: <span id='rf'></span><span class="blurred">XX</span> </p>
+      <p>XGBoost: <span id='xgb'></span><span class="blurred">XX</span> </p>
+      <p>GPR: <span id="gp"></span><span class="blurred">XX</span> </p>
+      <p>CNN: <span id="cnn"></span><span class="blurred">XX</span> </p>
       <div>
-      <b class="flabel" style="text-decoration: underline">Actual</b>
+      <b class="flabel"><sup>*</sup><span style="text-decoration: underline">Actual</span></b>
       <p><span id="actual"></span></p>
       </div>
 
     </div>
 </div>
+<p> <small><sup>*</sup>Velocity determined by the CTH simulation. Only applies to the original shape.</small></p>
 {% endblock %}

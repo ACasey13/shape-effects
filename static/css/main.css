@@ -12,3 +12,7 @@
   font-size: 1.2em;
 	filter: blur(4px);
 }
+
+body {
+  padding-bottom: 5em;
+}

@@ -1,12 +1,15 @@
-export function getDefaultData(myChart, elAct, labels) {
+export function getDefaultData(myChart, labelEls, labels) {
   var xhr = new XMLHttpRequest();
   xhr.onload = function() {
     if (xhr.status === 200){
         var data = JSON.parse(xhr.response);
         myChart.data.datasets[0].data = data['path'];
         myChart.data.datasets[1].data = JSON.parse(JSON.stringify(data['path']));
-        labels[1] = data['label'];
-        elAct.text(data['label']);
+        for (let i=0; i<5; i++){
+        labels[i] = data['labels'][i];
+        labelEls[i].text(data['labels'][i]);
+      }
+        myChart.data.datasets[1].label = 'original ' + data['set'];
         myChart.update(0);
     }
   }

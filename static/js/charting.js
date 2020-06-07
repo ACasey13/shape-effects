@@ -14,7 +14,7 @@ var myChart = new Chart(ctx, {
             lineTension: 0,
         },
         {
-            label: 'original shape',
+            label: '',
             data: [],
             //backgroundColor: 'rgba(60, 60, 60, 0.4)',
             borderColor: 'rgba(60, 60, 60, 0.4)',

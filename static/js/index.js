@@ -4,35 +4,26 @@ import * as utils from './utils.js';
 $( document ).ready(function() {
 var ctx = document.getElementById('myChart').getContext('2d');
 
-var labels = ['', '']
+var labels = ['', '', '', '', ''];
+var labelEls = [$("#rf"), $("#xgb"), $("#gp"),
+                $("#cnn"), $("#actual")];
 var extent = [1.790438802777571947e-05 * 10**4,
               3.472830731025012679e-05 * 10**4];
 
 var myChart = charting.createChart(ctx, extent[1], $("#b_reset_zoom"));
 
-utils.getDefaultData(myChart, $('#actual'), labels);
-
-var grabPore = function(id, size) {
-var xhr = new XMLHttpRequest();
-xhr.onload = function() {
-  if (xhr.status === 200){
-      data = JSON.parse(xhr.response)
-      myChart.data.datasets[0].data = data
-      myChart.data.datasets[1].data = JSON.parse(JSON.stringify(data));
-      myChart.update(0)
-  }
-}
-xhr.open('POST', '/data', true)
-xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded')
-xhr.send('id='+id+'&d='+size)
-}
+utils.getDefaultData(myChart, labelEls, labels);
 
 $("#b_reset_pore").click(function() {
     myChart.data.datasets[0].data = JSON.parse(JSON.stringify(myChart.data.datasets[1].data));
     myChart.update();
     $('#rotation').val(0);
     $('#rf').text(labels[0]);
-    $("#actual").text(labels[1]);
+    $('#xgb').text(labels[1]);
+    $('#gp').text(labels[2]);
+    $('#cnn').text(labels[3]);
+    $('#actual').text(labels[4]);
+    $("#nHarm").val(511);
 });
 
 $("#b_reset_zoom").click(function() {
@@ -51,18 +42,21 @@ $("#b_rescale").click(function(){
 });
 
 $("#b_predict").click(function() {
-  console.log('predict button hit!');
   var xhr = new XMLHttpRequest();
   xhr.onload = function() {
     if (xhr.status === 200){
         var data = JSON.parse(xhr.response);
         $('#rf').text(data['rf']);
-        $('#actual').text('----');
+        $('#xgb').text(data['xgb']);
+        $('#gp').text(data['gp']);
+        $('#cnn').text(data['cnn']);
+        //$('#actual').text('----');
     }
   }
   xhr.open('POST', '/pred_default', true);
   xhr.setRequestHeader('Content-Type', 'application/json');
-  xhr.send(JSON.stringify({"data":myChart.data.datasets[0].data}));
+  xhr.send(JSON.stringify({"data":myChart.data.datasets[0].data,
+                           "size":300}));
 });
 
 var global_rotation=0;

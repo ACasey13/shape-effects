@@ -139,7 +139,7 @@ $("#b_predict").click(function() {
         var data = JSON.parse(xhr.response);
         $('#rf').text(data['rf']);
         $('#xgb').text(data['xgb']);
-        $('#gp').text(data['gp']);
+        $('#gp').html(data['gp'] + "&#177;"+data['gp_std']);
         $('#cnn').text(data['cnn']);
         //$('#actual').text('----');
     }

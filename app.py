@@ -192,6 +192,7 @@ def predict():
     response=json.dumps({'rf': str(round(rfr_pred,1)),
                          'xgb': str(round(xgb_pred,1)),
                          'gp': str(round(gpr_pred,1)),
+                         'gp_std': str(round(np.sqrt(gpr_var), 1)),
                          'cnn': str(round(cnn_pred,1)),
                          #'cnn': 'tbd',
                          }),

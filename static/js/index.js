@@ -38,7 +38,7 @@ $("#b_filter").click(function() {
 });
 
 $("#b_rescale").click(function(){
-  utils.normalizeShape(myChart);
+  utils.normalizeShape(myChart, 300);
 });
 
 $("#b_predict").click(function() {

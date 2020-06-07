@@ -128,7 +128,8 @@ $("#b_filter").click(function() {
 });
 
 $("#b_rescale").click(function(){
-  utils.normalizeShape(myChart);
+  var size = parseInt($('input[type=radio][name=sizeselect]:checked').val());
+  utils.normalizeShape(myChart, size);
 });
 
 $("#b_predict").click(function() {

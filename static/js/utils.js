@@ -64,8 +64,7 @@ export function multiplyMatrices(m1, m2) {
     return result;
 }
 
-export function normalizeShape(myChart){
-   console.log('in utils.norm')
+export function normalizeShape(myChart, diam){
     //green's theorem
     //https://leancrew.com/all-this/2018/01/greens-theorem-and-section-properties/
     var s = 0;
@@ -85,7 +84,7 @@ export function normalizeShape(myChart){
     var res = [area, sx/(6*area), sy/(6*area)];
 
     // subtract centroid from data and rescale
-    var target = (300 * 10**-3 / 2)**2 * Math.PI;
+    var target = (diam * 10**-3 / 2)**2 * Math.PI;
     var scale_factor = Math.sqrt(target/area);
     arr[0] = arr[0].map(x => (x - res[1])*scale_factor);
     arr[1] = arr[1].map(y => (y - res[2])*scale_factor) ;

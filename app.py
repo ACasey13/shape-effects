@@ -28,6 +28,8 @@ login = LoginManager(app)
 login.login_view = 'user_login'
 bootstrap = Bootstrap(app)
 
+from load_models import *
+
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(64), nullable=False, unique=True)

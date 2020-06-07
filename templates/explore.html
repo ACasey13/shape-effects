@@ -21,7 +21,7 @@
 
   <p>The resulting critical threshold velocities were used as annotations to train machine learned models.</p>
 
-  <p>The following tool allows you to explore pore geometries, perturb their contours, and view the model predictions for critical threshold velocities.</p>
+  <p>The following tool allows you to explore pore geometries, perturb their contours, and view the model predictions for critical threshold velocities. The models implemented are Random Forest (RF), Extreme Gradient Boosting (XGB), Gaussian Process (GP), and Convolutional Neural Network (CNN).</p>
   <div class="alert alert-primary"><b>Note: </b>The models hyperparameters are not yet tuned. These are naive models.</div>
   <div class="alert alert-primary"><b>Note: </b>Currently, the 150nm models are not instantiated. If predict is called, the values are not to be trusted.</div>
   <div id="info" class="alert alert-info" hidden></div>
@@ -46,7 +46,7 @@
 
           <label for="nHarm" class="flabel"><b>Number of Harmonics</b></label>
               <input type="text" class="form-control subpad" id="nHarm" placeholder="1-511" value="511">
-              <button id="b_filter" type="button" class="btn btn-block btn-outline-primary">Filter Pore</button>
+              <button id="b_filter" type="button" class="btn btn-block btn-outline-primary"><sup>&#8224;</sup>Filter Pore</button>
 
               <label for="rotation" class="flabel"><b>Rotate (deg)</b></label>
                   <input type="text" class="form-control subpad" id="rotation" placeholder="0" value="0">
@@ -65,7 +65,7 @@
       <b class="flabel">Critical Velocity (m/s)</b>
       <b class="flabel" style="text-decoration: underline">Predicted</b>
       <p>RF: <span id='rf'></span></p>
-      <p>XGBoost: <span id='xgb'></span></p>
+      <p>XGB: <span id='xgb'></span></p>
       <p>GP: <span id="gp"></span></p>
       <p>CNN: <span id="cnn"></span></p>
       <div>
@@ -75,5 +75,7 @@
 
     </div>
 </div>
+<p style="margin-top:1em;"> <small><sup>&#8224;</sup>Pore filtering cannot be reversed without resetting the shape. For example, filtering to just the first 10 harmonics and then hitting the filter pore button with 511 harmonics will not recover the original shape. Also, note that the filter will act on the pore shape as currently visualized such that it will continue to affect the shape if applied multiple times in a row.</small></p>
 <p> <small><sup>*</sup>Velocity determined by the CTH simulation. Only applies to the original shape.</small></p>
+<p> <small><sup>&#167;</sup>One standard deviation about the Gaussian process prediction.</small></p>
 {% endblock %}

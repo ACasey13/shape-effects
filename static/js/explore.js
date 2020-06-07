@@ -86,7 +86,7 @@ $('#b_fetch').click(function(){
 });
 
 $('#poreID').on('input', function(){
-  console.log(this.value);
+  //console.log(this.value);
   if (this.value){
   if (this.value < 1 || this.value > upperLim[0]) {
     $('#info').html('<b>Info:</b> Pore ID must be between 1 and '+upperLim[0]+'.');
@@ -139,7 +139,7 @@ $("#b_predict").click(function() {
         var data = JSON.parse(xhr.response);
         $('#rf').text(data['rf']);
         $('#xgb').text(data['xgb']);
-        $('#gp').html(data['gp'] + "&#177;"+data['gp_std']);
+        $('#gp').html(data['gp'] + "&#177;"+data['gp_std']+"<sup>&#167;</sup>");
         $('#cnn').text(data['cnn']);
         //$('#actual').text('----');
     }
@@ -147,7 +147,7 @@ $("#b_predict").click(function() {
   xhr.open('POST', '/predict', true);
   xhr.setRequestHeader('Content-Type', 'application/json');
   xhr.send(JSON.stringify({"data":myChart.data.datasets[0].data,
-                           "size":300}));
+                           "size":300})); //need to connect 150nm models
 });
 
 var global_rotation=0;

@@ -185,6 +185,7 @@ def predict():
     print('xgb_pred: {}'.format(xgb_pred))
     gpr_pred, gpr_var = gpr_300.predict(x)
     gpr_pred = gpr_pred[0][0] + gpr_300_shift
+    gpr_std = gpr_var[0][0]
     print('gpr_pred: {}'.format(gpr_pred))
     cnn_pred = cnn_300.predict(img)[0][0]
     print('cnn_pred: {}'.format(cnn_pred))
@@ -192,7 +193,7 @@ def predict():
     response=json.dumps({'rf': str(round(rfr_pred,1)),
                          'xgb': str(round(xgb_pred,1)),
                          'gp': str(round(gpr_pred,1)),
-                         'gp_std': str(round(np.sqrt(gpr_var), 1)),
+                         'gp_std': str(round(np.sqrt(gpr_std), 1)),
                          'cnn': str(round(cnn_pred,1)),
                          #'cnn': 'tbd',
                          }),

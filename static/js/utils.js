@@ -17,7 +17,7 @@ export function getDefaultData(myChart, labelEls, labels) {
   xhr.send(null);
 }
 
-export function filterPore(mc, n_h) {
+export function filterPore(mc, n_h, button) {
 var xhr = new XMLHttpRequest();
 xhr.onload = function() {
   if (xhr.status === 200){
@@ -25,7 +25,10 @@ xhr.onload = function() {
       mc.data.datasets[0].data = data;
       mc.update(0);
   }
+  button.html('<sup>&#8224;</sup>Filter Pore').removeAttr('disabled');
 }
+const bWidth = button.width();
+button.html("<span class='spinner-border spinner-border-sm text-primary m-1' role='status'></span>").attr('disabled', 'disabled').width(bWidth);
 xhr.open('POST', '/filter', true);
 xhr.setRequestHeader('Content-Type', 'application/json');
 xhr.send(JSON.stringify({"n_h": n_h,

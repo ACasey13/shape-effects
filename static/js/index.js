@@ -34,7 +34,7 @@ $("#b_reset_zoom").click(function() {
 
 $("#b_filter").click(function() {
     var n_h = $("#nHarm").val();
-    utils.filterPore(myChart, n_h);
+    utils.filterPore(myChart, n_h, $("#b_filter"));
 });
 
 $("#b_rescale").click(function(){
@@ -42,17 +42,21 @@ $("#b_rescale").click(function(){
 });
 
 $("#b_predict").click(function() {
+  var button = $("#b_predict");
   var xhr = new XMLHttpRequest();
   xhr.onload = function() {
     if (xhr.status === 200){
         var data = JSON.parse(xhr.response);
-        $('#rf').text(data['rf']);
-        $('#xgb').text(data['xgb']);
-        $('#gp').text(data['gp']);
-        $('#cnn').text(data['cnn']);
+        $('#rf').html(data['rf']+"<span class='blurred'>XX</span> ");
+        $('#xgb').html(data['xgb']+"<span class='blurred'>XX</span> ");
+        $('#gp').html(data['gp']+"<span class='blurred'>XX</span> ");
+        $('#cnn').html(data['cnn']+"<span class='blurred'>XX</span> ");
         //$('#actual').text('----');
     }
+    button.text('Predict').removeAttr('disabled');
   }
+  const bWidth = button.width();
+  button.html("<span class='spinner-border spinner-border-sm text-success m-1' role='status'></span>").attr('disabled', 'disabled').width(bWidth);
   xhr.open('POST', '/pred_default', true);
   xhr.setRequestHeader('Content-Type', 'application/json');
   xhr.send(JSON.stringify({"data":myChart.data.datasets[0].data,

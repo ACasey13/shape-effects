@@ -9,13 +9,13 @@ var labelEls = [$("#rf"), $("#xgb"), $("#gp"),
                 $("#cnn"), $("#actual")];
 var extent = [1.790438802777571947e-05 * 10**4,
               3.472830731025012679e-05 * 10**4];
-var upperLim = [6152];
+var upperLim = [6152]; //is updated dynamically on client side
 
 var myChart = charting.createChart(ctx, extent[1], $("#b_reset_zoom"));
 
 utils.getDefaultData(myChart, labelEls, labels);
 
-var grabPore = function(id, size) {
+var grabPore = function(id, size, button) {
 var xhr = new XMLHttpRequest();
 xhr.onload = function() {
   if (xhr.status === 200){
@@ -38,6 +38,7 @@ xhr.onload = function() {
 
       myChart.update(0);
   }
+  button.text('Fetch Pore').removeAttr('disabled');
 }
 xhr.open('POST', '/data', true);
 xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
@@ -72,6 +73,7 @@ $('input[type=radio][name=sizeselect]').change(function() {
 });
 
 $('#b_fetch').click(function(){
+   var button = $("#b_fetch");
    var size = $('input[type=radio][name=sizeselect]:checked').val();
    var id = $('#poreID').val();
    $('#info').attr("hidden", "hidden");
@@ -82,7 +84,9 @@ $('#b_fetch').click(function(){
      $('#info').removeAttr("hidden");
      return;
    }
-   grabPore(id, size);
+   const bWidth = button.width();
+   button.html("<span class='spinner-border spinner-border-sm text-primary m-1' role='status'></span>").attr('disabled', 'disabled').width(bWidth);
+   grabPore(id, size, button);
 });
 
 $('#poreID').on('input', function(){
@@ -124,7 +128,7 @@ $("#b_filter").click(function() {
       $('#info').removeAttr("hidden");
       return;
     }
-    utils.filterPore(myChart, n_h);
+    utils.filterPore(myChart, n_h, $("#b_filter"));
 });
 
 $("#b_rescale").click(function(){
@@ -133,6 +137,7 @@ $("#b_rescale").click(function(){
 });
 
 $("#b_predict").click(function() {
+  var button = $("#b_predict");
   var xhr = new XMLHttpRequest();
   xhr.onload = function() {
     if (xhr.status === 200){
@@ -141,9 +146,11 @@ $("#b_predict").click(function() {
         $('#xgb').text(data['xgb']);
         $('#gp').html(data['gp'] + "&#177;"+data['gp_std']+"<sup>&#167;</sup>");
         $('#cnn').text(data['cnn']);
-        //$('#actual').text('----');
     }
+    button.text('Predict').removeAttr('disabled');
   }
+  const bWidth = button.width();
+  button.html("<span class='spinner-border spinner-border-sm text-success m-1' role='status'></span>").attr('disabled','disabled').width(bWidth);
   xhr.open('POST', '/predict', true);
   xhr.setRequestHeader('Content-Type', 'application/json');
   xhr.send(JSON.stringify({"data":myChart.data.datasets[0].data,

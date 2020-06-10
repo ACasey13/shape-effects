@@ -42,9 +42,6 @@ Mako==1.1.2
 Markdown==3.2.2
 MarkupSafe==1.1.1
 matplotlib==3.1.1
-mkl-fft==1.0.15
-mkl-random==1.1.1
-mkl-service==2.3.0
 networkx==2.4
 numpy==1.17.3
 opencv-contrib-python-headless==4.1.1.26
@@ -54,7 +51,6 @@ paramz==0.9.5
 Pillow==7.1.2
 protobuf==3.12.2
 pycparser==2.20
-pygpu==0.7.6
 pyparsing==2.4.7
 pyrsistent==0.16.0
 python-dateutil==2.8.1

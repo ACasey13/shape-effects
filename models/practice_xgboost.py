@@ -86,7 +86,7 @@ def fit(data):
     test_matrix = xgb.DMatrix(data=X_test, label=y_test)
 
     print('fitting model...')
-    gbr = GBR()
+    gbr = GBR(objective='reg:squarederror')
     gbr.fit(X_train, y_train, early_stopping_rounds=50,
             eval_metric='rmse',
             eval_set=[[X_test, y_test]],

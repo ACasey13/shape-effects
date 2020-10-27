@@ -48,7 +48,7 @@ colorama==0.4.1
 configobj==5.0.6
 CoolProp==6.3.0
 coverage==4.5.4
-cryptography==2.8
+cryptography==3.2
 cssselect==1.1.0
 cssselect2==0.2.2
 cvxopt==1.2.3

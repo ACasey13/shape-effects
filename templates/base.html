@@ -17,22 +17,27 @@
 {% endblock %}
 
 {% block navbar %}
-    <nav class="navbar navbar-expand-sm navbar-dark bg-dark sticky-top">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top">
           <a class="navbar-brand" href="{{ url_for('index') }}"><img class = "navbar-brand" src="../static/imgs/long-logo-white.svg" alt="Home"></a>
             <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
         <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav">
-                <li class="nav-item"><a class="nav-link" href="{{ url_for('background') }}">Background</a></li>
-                <li class="nav-item"><a class="nav-link" href="{{ url_for('models') }}">Models</a></li>
+            <ul class="navbar-nav d-lg-flex align-items-center">
+                <li class="nav-item h-100" style="text-align: center;"><a class="nav-link" href="{{ url_for('background') }}">Background &<br>Methodology</a></li>
+
+                <li style="text-align: center;" class="nav-item"><a class="nav-link" href="{{ url_for('data') }}">Data<br>Representation</a></li>
+
+                <li style="text-align: center;" class="nav-item"><a class="nav-link" href="{{ url_for('models') }}">Models</a></li>
+
                 {% if current_user.is_anonymous %}
-                <li class="nav-item"><a class="nav-link disabled" href="{{ url_for('explore') }}">Full Features</a></li>
+                <li style="text-align: center;" class="nav-item"><a class="nav-link disabled" href="{{ url_for('explore') }}">Full Features</a></li>
+
                 {% else %}
-                <li class="nav-item"><a class="nav-link" href="{{ url_for('explore') }}">Full Features</a></li>
+                <li style="text-align: center;" class="nav-item"><a class="nav-link" href="{{ url_for('explore') }}">Full Features</a></li>
                 {% endif %}
             </ul>
-            <ul class="navbar-nav ml-auto">
+            <ul class="navbar-nav d-lg-flex align-items-center ml-auto">
               <li class="nav-item">
                 {% if current_user.is_anonymous %}
                 <a class="nav-link" href="{{ url_for('user_login') }}" class="login">Login</a>

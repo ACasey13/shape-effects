@@ -1,5 +1,482 @@
 {% extends "base.html" %}
 
+{% block app_header %}
+<link rel="stylesheet" href="/../static/css/main.css">
+{% endblock %}
+
 {% block app_body %}
-Information about the Fourier descriptors and models will go here...
+<h1>Models</h1>
+<p>While the resultant critical threshold velocities of pore geometries acquired via CTH simulations are insightful, determining the threshold velocity of a new pore shape requires another simulation. Additionally, we hypothesize that certain small perturbations in the pore contour can considerably shift the critical threshold velocity. To quickly assess the critical threshold velocity of a new pore, or an altered version of a previously simulated pore, we developed machine-learned surrogate models.</p>
+
+<p>We used three types of machine learning models; a random forest (RF) implemented with scikit-learn<sup><a href="#ref_m">1</a></sup>, an extreme gradient boosting machine (XGB) through the XGBoost<sup> <a href="#ref_m">2</a> </sup> package, and a convolutional neural network (CNN) modeled using Keras<sup><a href="#ref_m">3</a></sup>. All of these algorithms are for supervised learning tasks. The critical threshold velocities served as the data labels (or annotations) during model fitting. </p>
+
+<p>For training and evaluation, each data set (150 nm or 300 nm) was considered separately and randomly split into training, validation, and test sets. The training, validation, and test sets contained 80%, 10%, and 10% of the original data, respectively.</p>
+
+<p>For each data set, random forest models were trained using aspect ratio and orientation (ARO), full set of simple metrics (Simple), and Fourier coefficients as model inputs. The hyperparameters were optimized using Hyperopt<sup> <a href="#ref_m">4</a> </sup> to explore and exploit the hyperparameter space while evaluating the mean squared error of the validation set on the fitted model over 500 trials. To kick off the optimization process a prior distribution is applied to each hyperparameter that is allowed to vary. For the model using the Fourier coefficients as inputs, the number of harmonics retained is treated as an additional hyperparameter. For example, n<sub>h</sub>=3 signifies that the Fourier coefficients from C<sub>-3</sub> to C<sub>3</sub> are supplied to the model.</p>
+
+<p>The XGB model was applied to both data sets but using only the Fourier coefficient representation of the pore shapes. Similar to the RF models, the XGB hyperparameters were tuned using Hyperopt with respect the validation set.</p>
+
+<p>The CNN was the last model implemented. This network was composed of four sequential 3x3 convolutional kernels and 2x2 max pooling layers followed by densely connected neural network with 3 layers. The neural network layers had 64, 32, and 1 units, respectively, with the last unit providing the network's predicted critical threshold velocity. Both the convolutional kernels and fully connected layers were followed by the exponential linear unit (ELU) activation; with the exception of the final neural network unit which was followed with a linear activation. Despite the large number choices available when designing a deep network architecture &mdash; such as: number of layers, type of activation functions used, size of convolutional kernels, type and magnitude of regularization &mdash; the initial architecture yielded performance on par with the tuned RF and XGB models. For this reason, and because deep neural networks require longer training times, the CNN hyperparameter space was not further explored.</p>
+
+<h2>Model Comparison</h2>
+<p>The performance of the machine-learned models is measured using the R<sup>2</sup> score, mean squared error (MSE), and the mean absolute error (MAE). These evaluation measures are reported on the training, validation, and test sets. While common procedure, it bears repeating that the models weights were fit while accessing the training set, the model hyperparameters were tuned to maximize performance while evaluating the validation set, and the test set was only evaluated once after final model selection. Therefore, the test set scores serve as the best approximation of the models ability to generalize to unseen instances (new data). The performance measures for the 150 nm and 300 nm equivalent diameter data sets are tabulated in Tables I and II, respectively.</p>
+
+<table style="border-collapse: collapse; border: none; border-spacing: 0px;">
+	<caption>
+		Table I: R<sup>2</sup>, MSE, and MAE performance metrics for all models on pores scaled to 150 nm equivalent diameter categorized by set designation &mdash; train, validation, or test.
+	</caption>
+	<tr>
+		<td style="padding-right: 3pt; padding-left: 3pt;">
+		</td>
+		<td colspan="3" style="text-align: center; padding-right: 3pt; padding-left: 3pt;">
+			<b>R<sup>2</sup></b>
+		</td>
+		<td colspan="3" style="text-align: center; padding-right: 3pt; padding-left: 3pt;">
+			<b>Mean Squared Error</b>
+		</td>
+		<td colspan="3" style="text-align: center; padding-right: 3pt; padding-left: 3pt;">
+			<b>Mean Absolute Error</b>
+		</td>
+	</tr>
+	<tr>
+		<td style="border-bottom: 2px double black; --darkreader-inline-border-bottom:#181a1b; padding-right: 3pt; padding-left: 3pt;">
+		</td>
+		<td style="border-bottom: 2px double black; --darkreader-inline-border-bottom:#181a1b; text-align: center; padding-right: 3pt; padding-left: 3pt;">
+			Train
+		</td>
+		<td style="border-bottom: 2px double black; --darkreader-inline-border-bottom:#181a1b; text-align: center; padding-right: 3pt; padding-left: 3pt;">
+			Valid
+		</td>
+		<td style="border-bottom: 2px double black; --darkreader-inline-border-bottom:#181a1b; text-align: center; padding-right: 3pt; padding-left: 3pt;">
+			Test
+		</td>
+		<td style="border-bottom: 2px double black; --darkreader-inline-border-bottom:#181a1b; text-align: center; padding-right: 3pt; padding-left: 3pt;">
+			Train
+		</td>
+		<td style="border-bottom: 2px double black; --darkreader-inline-border-bottom:#181a1b; text-align: center; padding-right: 3pt; padding-left: 3pt;">
+			Valid
+		</td>
+		<td style="border-bottom: 2px double black; --darkreader-inline-border-bottom:#181a1b; text-align: center; padding-right: 3pt; padding-left: 3pt;">
+			Test
+		</td>
+		<td style="border-bottom: 2px double black; --darkreader-inline-border-bottom:#181a1b; text-align: center; padding-right: 3pt; padding-left: 3pt;">
+			Train
+		</td>
+		<td style="border-bottom: 2px double black; --darkreader-inline-border-bottom:#181a1b; text-align: center; padding-right: 3pt; padding-left: 3pt;">
+			Valid
+		</td>
+		<td style="border-bottom: 2px double black; --darkreader-inline-border-bottom:#181a1b; text-align: center; padding-right: 3pt; padding-left: 3pt;">
+			Test
+		</td>
+	</tr>
+	<tr>
+		<td style="text-align: center; padding-right: 3pt; padding-left: 3pt;">
+			<b>RF ARO</b>
+		</td>
+		<td style="text-align: right; padding-right: 3pt; padding-left: 3pt;">
+			0.6969
+		</td>
+		<td style="text-align: right; padding-right: 3pt; padding-left: 3pt;">
+			0.5951
+		</td>
+		<td style="border-right: 1px solid black; --darkreader-inline-border-right:#181a1b; text-align: right; padding-right: 3pt; padding-left: 3pt;">
+			0.6256
+		</td>
+		<td style="text-align: right; padding-right: 3pt; padding-left: 3pt;">
+			9061.72
+		</td>
+		<td style="text-align: right; padding-right: 3pt; padding-left: 3pt;">
+			11357.40
+		</td>
+		<td style="border-right: 1px solid black; --darkreader-inline-border-right:#181a1b; text-align: right; padding-right: 3pt; padding-left: 3pt;">
+			11244.87
+		</td>
+		<td style="text-align: right; padding-right: 3pt; padding-left: 3pt;">
+			70.25
+		</td>
+		<td style="text-align: right; padding-right: 3pt; padding-left: 3pt;">
+			80.94
+		</td>
+		<td style="text-align: right; padding-right: 3pt; padding-left: 3pt;">
+			79.49
+		</td>
+	</tr>
+	<tr>
+		<td style="text-align: center; padding-right: 3pt; padding-left: 3pt;">
+			<b>RF Simple</b>
+		</td>
+		<td style="text-align: right; padding-right: 3pt; padding-left: 3pt;">
+			0.7695
+		</td>
+		<td style="text-align: right; padding-right: 3pt; padding-left: 3pt;">
+			0.6272
+		</td>
+		<td style="border-right: 1px solid black; --darkreader-inline-border-right:#181a1b; text-align: right; padding-right: 3pt; padding-left: 3pt;">
+			0.6721
+		</td>
+		<td style="text-align: right; padding-right: 3pt; padding-left: 3pt;">
+			6892.02
+		</td>
+		<td style="text-align: right; padding-right: 3pt; padding-left: 3pt;">
+			10458.29
+		</td>
+		<td style="border-right: 1px solid black; --darkreader-inline-border-right:#181a1b; text-align: right; padding-right: 3pt; padding-left: 3pt;">
+			9847.84
+		</td>
+		<td style="text-align: right; padding-right: 3pt; padding-left: 3pt;">
+			60.25
+		</td>
+		<td style="text-align: right; padding-right: 3pt; padding-left: 3pt;">
+			76.50
+		</td>
+		<td style="text-align: right; padding-right: 3pt; padding-left: 3pt;">
+			72.59
+		</td>
+	</tr>
+	<tr>
+		<td style="text-align: center; padding-right: 3pt; padding-left: 3pt;">
+			<b>RF</b>
+		</td>
+		<td style="text-align: right; padding-right: 3pt; padding-left: 3pt;">
+			0.9748
+		</td>
+		<td style="text-align: right; padding-right: 3pt; padding-left: 3pt;">
+			0.8168
+		</td>
+		<td style="border-right: 1px solid black; --darkreader-inline-border-right:#181a1b; text-align: right; padding-right: 3pt; padding-left: 3pt;">
+			0.8236
+		</td>
+		<td style="text-align: right; padding-right: 3pt; padding-left: 3pt;">
+			752.07
+		</td>
+		<td style="text-align: right; padding-right: 3pt; padding-left: 3pt;">
+			5139.79
+		</td>
+		<td style="border-right: 1px solid black; --darkreader-inline-border-right:#181a1b; text-align: right; padding-right: 3pt; padding-left: 3pt;">
+			5298.39
+		</td>
+		<td style="text-align: right; padding-right: 3pt; padding-left: 3pt;">
+			19.32
+		</td>
+		<td style="text-align: right; padding-right: 3pt; padding-left: 3pt;">
+			51.83
+		</td>
+		<td style="text-align: right; padding-right: 3pt; padding-left: 3pt;">
+			53.37
+		</td>
+	</tr>
+	<tr>
+		<td style="text-align: center; padding-right: 3pt; padding-left: 3pt;">
+			<b>XGB</b>
+		</td>
+		<td style="text-align: right; padding-right: 3pt; padding-left: 3pt;">
+			0.9999
+		</td>
+		<td style="text-align: right; padding-right: 3pt; padding-left: 3pt;">
+			0.8192
+		</td>
+		<td style="border-right: 1px solid black; --darkreader-inline-border-right:#181a1b; text-align: right; padding-right: 3pt; padding-left: 3pt;">
+			0.8274
+		</td>
+		<td style="text-align: right; padding-right: 3pt; padding-left: 3pt;">
+			2.10
+		</td>
+		<td style="text-align: right; padding-right: 3pt; padding-left: 3pt;">
+			5072.21
+		</td>
+		<td style="border-right: 1px solid black; --darkreader-inline-border-right:#181a1b; text-align: right; padding-right: 3pt; padding-left: 3pt;">
+			5185.57
+		</td>
+		<td style="text-align: right; padding-right: 3pt; padding-left: 3pt;">
+			1.02
+		</td>
+		<td style="text-align: right; padding-right: 3pt; padding-left: 3pt;">
+			49.38
+		</td>
+		<td style="text-align: right; padding-right: 3pt; padding-left: 3pt;">
+			50.85
+		</td>
+	</tr>
+	<tr>
+		<td style="text-align: center; padding-right: 3pt; padding-left: 3pt;">
+			<b>CNN</b>
+		</td>
+		<td style="text-align: right; padding-right: 3pt; padding-left: 3pt;">
+			0.8919
+		</td>
+		<td style="text-align: right; padding-right: 3pt; padding-left: 3pt;">
+			0.8306
+		</td>
+		<td style="border-right: 1px solid black; --darkreader-inline-border-right:#181a1b; text-align: right; padding-right: 3pt; padding-left: 3pt;">
+			0.8487
+		</td>
+		<td style="text-align: right; padding-right: 3pt; padding-left: 3pt;">
+			3230.68
+		</td>
+		<td style="text-align: right; padding-right: 3pt; padding-left: 3pt;">
+			4752.13
+		</td>
+		<td style="border-right: 1px solid black; --darkreader-inline-border-right:#181a1b; text-align: right; padding-right: 3pt; padding-left: 3pt;">
+			4545.63
+		</td>
+		<td style="text-align: right; padding-right: 3pt; padding-left: 3pt;">
+			42.38
+		</td>
+		<td style="text-align: right; padding-right: 3pt; padding-left: 3pt;">
+			50.10
+		</td>
+		<td style="text-align: right; padding-right: 3pt; padding-left: 3pt;">
+			49.92
+		</td>
+	</tr>
+</table>
+
+<table style="border-collapse: collapse; border: none; border-spacing: 0px;">
+	<caption>
+		Table II: R<sup>2</sup>, MSE, and MAE performance metrics for all models on pores scaled to 300 nm equivalent diameter categorized by set designation &mdash; train, validation, or test.
+	</caption>
+	<tr>
+		<td style="text-align: center; padding-right: 3pt; padding-left: 3pt;">
+		</td>
+		<td colspan="3" style="text-align: center; padding-right: 3pt; padding-left: 3pt;">
+			<b>R<sup>2</sup></b>
+		</td>
+		<td colspan="3" style="text-align: center; padding-right: 3pt; padding-left: 3pt;">
+			<b>Mean Squared Error</b>
+		</td>
+		<td colspan="3" style="text-align: center; padding-right: 3pt; padding-left: 3pt;">
+			<b>Mean Absolute Error</b>
+		</td>
+	</tr>
+	<tr>
+		<td style="border-bottom: 2px double black; --darkreader-inline-border-bottom:#181a1b; text-align: center; padding-right: 3pt; padding-left: 3pt;">
+		</td>
+		<td style="border-bottom: 2px double black; --darkreader-inline-border-bottom:#181a1b; text-align: center; padding-right: 3pt; padding-left: 3pt;">
+			Train
+		</td>
+		<td style="border-bottom: 2px double black; --darkreader-inline-border-bottom:#181a1b; text-align: center; padding-right: 3pt; padding-left: 3pt;">
+			Valid
+		</td>
+		<td style="border-bottom: 2px double black; --darkreader-inline-border-bottom:#181a1b; text-align: center; padding-right: 3pt; padding-left: 3pt;">
+			Test
+		</td>
+		<td style="border-bottom: 2px double black; --darkreader-inline-border-bottom:#181a1b; text-align: center; padding-right: 3pt; padding-left: 3pt;">
+			Train
+		</td>
+		<td style="border-bottom: 2px double black; --darkreader-inline-border-bottom:#181a1b; text-align: center; padding-right: 3pt; padding-left: 3pt;">
+			Valid
+		</td>
+		<td style="border-bottom: 2px double black; --darkreader-inline-border-bottom:#181a1b; text-align: center; padding-right: 3pt; padding-left: 3pt;">
+			Test
+		</td>
+		<td style="border-bottom: 2px double black; --darkreader-inline-border-bottom:#181a1b; text-align: center; padding-right: 3pt; padding-left: 3pt;">
+			Train
+		</td>
+		<td style="border-bottom: 2px double black; --darkreader-inline-border-bottom:#181a1b; text-align: center; padding-right: 3pt; padding-left: 3pt;">
+			Valid
+		</td>
+		<td style="border-bottom: 2px double black; --darkreader-inline-border-bottom:#181a1b; text-align: center; padding-right: 3pt; padding-left: 3pt;">
+			Test
+		</td>
+	</tr>
+	<tr>
+		<td style="text-align: center; padding-right: 3pt; padding-left: 3pt;">
+			<b>RF ARO</b>
+		</td>
+		<td style="text-align: right; padding-right: 3pt; padding-left: 3pt;">
+			0.5832
+		</td>
+		<td style="text-align: right; padding-right: 3pt; padding-left: 3pt;">
+			0.5297
+		</td>
+		<td style="border-right: 1px solid black; --darkreader-inline-border-right:#181a1b; text-align: right; padding-right: 3pt; padding-left: 3pt;">
+			0.4747
+		</td>
+		<td style="text-align: right; padding-right: 3pt; padding-left: 3pt;">
+			42376.85
+		</td>
+		<td style="text-align: right; padding-right: 3pt; padding-left: 3pt;">
+			51712.36
+		</td>
+		<td style="border-right: 1px solid black; --darkreader-inline-border-right:#181a1b; text-align: right; padding-right: 3pt; padding-left: 3pt;">
+			50969.87
+		</td>
+		<td style="text-align: right; padding-right: 3pt; padding-left: 3pt;">
+			157.88
+		</td>
+		<td style="text-align: right; padding-right: 3pt; padding-left: 3pt;">
+			176.75
+		</td>
+		<td style="text-align: right; padding-right: 3pt; padding-left: 3pt;">
+			173.03
+		</td>
+	</tr>
+	<tr>
+		<td style="text-align: center; padding-right: 3pt; padding-left: 3pt;">
+			<b>RF Simple</b>
+		</td>
+		<td style="text-align: right; padding-right: 3pt; padding-left: 3pt;">
+			0.6706
+		</td>
+		<td style="text-align: right; padding-right: 3pt; padding-left: 3pt;">
+			0.5835
+		</td>
+		<td style="border-right: 1px solid black; --darkreader-inline-border-right:#181a1b; text-align: right; padding-right: 3pt; padding-left: 3pt;">
+			0.5685
+		</td>
+		<td style="text-align: right; padding-right: 3pt; padding-left: 3pt;">
+			33489.94
+		</td>
+		<td style="text-align: right; padding-right: 3pt; padding-left: 3pt;">
+			45792.87
+		</td>
+		<td style="border-right: 1px solid black; --darkreader-inline-border-right:#181a1b; text-align: right; padding-right: 3pt; padding-left: 3pt;">
+			41865.06
+		</td>
+		<td style="text-align: right; padding-right: 3pt; padding-left: 3pt;">
+			138.89
+		</td>
+		<td style="text-align: right; padding-right: 3pt; padding-left: 3pt;">
+			164.66
+		</td>
+		<td style="text-align: right; padding-right: 3pt; padding-left: 3pt;">
+			156.02
+		</td>
+	</tr>
+	<tr>
+		<td style="text-align: center; padding-right: 3pt; padding-left: 3pt;">
+			<b>RF</b>
+		</td>
+		<td style="text-align: right; padding-right: 3pt; padding-left: 3pt;">
+			0.9642
+		</td>
+		<td style="text-align: right; padding-right: 3pt; padding-left: 3pt;">
+			0.8271
+		</td>
+		<td style="border-right: 1px solid black; --darkreader-inline-border-right:#181a1b; text-align: right; padding-right: 3pt; padding-left: 3pt;">
+			0.7834
+		</td>
+		<td style="text-align: right; padding-right: 3pt; padding-left: 3pt;">
+			3643.97
+		</td>
+		<td style="text-align: right; padding-right: 3pt; padding-left: 3pt;">
+			19011.74
+		</td>
+		<td style="border-right: 1px solid black; --darkreader-inline-border-right:#181a1b; text-align: right; padding-right: 3pt; padding-left: 3pt;">
+			21016.85
+		</td>
+		<td style="text-align: right; padding-right: 3pt; padding-left: 3pt;">
+			44.23
+		</td>
+		<td style="text-align: right; padding-right: 3pt; padding-left: 3pt;">
+			106.59
+		</td>
+		<td style="text-align: right; padding-right: 3pt; padding-left: 3pt;">
+			108.36
+		</td>
+	</tr>
+	<tr>
+		<td style="text-align: center; padding-right: 3pt; padding-left: 3pt;">
+			<b>XGB</b>
+		</td>
+		<td style="text-align: right; padding-right: 3pt; padding-left: 3pt;">
+			0.9870
+		</td>
+		<td style="text-align: right; padding-right: 3pt; padding-left: 3pt;">
+			0.8484
+		</td>
+		<td style="border-right: 1px solid black; --darkreader-inline-border-right:#181a1b; text-align: right; padding-right: 3pt; padding-left: 3pt;">
+			0.8061
+		</td>
+		<td style="text-align: right; padding-right: 3pt; padding-left: 3pt;">
+			1319.61
+		</td>
+		<td style="text-align: right; padding-right: 3pt; padding-left: 3pt;">
+			16669.59
+		</td>
+		<td style="border-right: 1px solid black; --darkreader-inline-border-right:#181a1b; text-align: right; padding-right: 3pt; padding-left: 3pt;">
+			18811.32
+		</td>
+		<td style="text-align: right; padding-right: 3pt; padding-left: 3pt;">
+			25.77
+		</td>
+		<td style="text-align: right; padding-right: 3pt; padding-left: 3pt;">
+			99.55
+		</td>
+		<td style="text-align: right; padding-right: 3pt; padding-left: 3pt;">
+			102.81
+		</td>
+	</tr>
+	<tr>
+		<td style="text-align: center; padding-right: 3pt; padding-left: 3pt;">
+			<b>CNN</b>
+		</td>
+		<td style="text-align: right; padding-right: 3pt; padding-left: 3pt;">
+			0.9400
+		</td>
+		<td style="text-align: right; padding-right: 3pt; padding-left: 3pt;">
+			0.8693
+		</td>
+		<td style="border-right: 1px solid black; --darkreader-inline-border-right:#181a1b; text-align: right; padding-right: 3pt; padding-left: 3pt;">
+			0.8564
+		</td>
+		<td style="text-align: right; padding-right: 3pt; padding-left: 3pt;">
+			6094.67
+		</td>
+		<td style="text-align: right; padding-right: 3pt; padding-left: 3pt;">
+			14365.54
+		</td>
+		<td style="border-right: 1px solid black; --darkreader-inline-border-right:#181a1b; text-align: right; padding-right: 3pt; padding-left: 3pt;">
+			13932.92
+		</td>
+		<td style="text-align: right; padding-right: 3pt; padding-left: 3pt;">
+			60.67
+		</td>
+		<td style="text-align: right; padding-right: 3pt; padding-left: 3pt;">
+			89.92
+		</td>
+		<td style="text-align: right; padding-right: 3pt; padding-left: 3pt;">
+			88.03
+		</td>
+	</tr>
+</table>
+
+<p>The relative ranking of the models is similar for both data sets. The random forest model trained using only the pore aspect ratio and orientation has the lowest performance with R<sup>2</sup> scores of .63 and .48 on the test sets &mdash; depending one which data set is referenced. When the remaining simple metrics of solidity, circularity, perimeter, and mean diameter are added to the random forest model the model performance improves. The test set R<sup>2</sup> increases by roughly 7 percentage points which equates to a reduction of the mean absolute error by 7 m/s on the 150 nm equivalent diameter pores and by 17 m/s on the 300 nm equivalent diameter pores. </p>
+
+<p>The RF and XGB models using the Fourier coefficient representation of the pore as inputs showed significant performance gains on both pore sizes. Interestingly, for all four models the optimal number of harmonics, n<sub>h</sub>, as determined by the hyperparameter optimization process was three. This is not entirely surprising, as already noted, the bulk of the pore information is contained in the lower order harmonics. The lower order harmonics prescribe the basic outline of the shape. Higher order harmonics recreate the actual pore contour by adding small deviations from the base outline. Generally, sequentially higher ordered harmonics add successively smaller deviations. As more higher order harmonics are retained the pore contour will approach the original contour extracted from the SEM-obtained images, however, at some point, the hydrocode outcome will no longer change with the increased resolution of the correct pore shape. That is, the hydrocode is not able to capture the differences made by small deviations in the pore contour &mdash; if physically present at all. This effect is slightly exacerbated by the fact that the CTH outcomes are reduced to a single critical threshold velocity for each pore and because the this velocity is only resolved to within 1 m/s. As a brief aside, the choice to resolve the critical threshold velocity to 1 m/s was made: 1) to reduce the number of simulations required, 2) because 1 m/s is small relative to the range of critical thresholds observed in preliminary tests, and 3) because the numerical limit of the hydrocode, in this regard, has not yet been approximated. </p>
+
+<p>
+Returning to the discussion at hand, we emphasize that retaining only the first three harmonics severely smooths the pore contour. Furthermore, the performance gain seen by using Fourier coefficient input representation reveals that even just the bulk pore shape carried by the first three harmonics possesses more discriminative information than the full set of simple metrics. The RF and XGB models also exhibit high R<sup>2</sup> scores on the training, in both the absolute sense and relative the validation and test sets. This suggests that, despite the hyperparameter optimization to the validation set, these models are overfitting the training data. None of the final model hyperparameters are at, or near, the bounds set by the prior distribution so it cannot be said that the models were unable to reduce model complexity (by adding regularization or decreasing tree depth).</p>
+
+<p>The convolutional neural network, which acts on the standardized array representation of the pores, manifests performance on par with the Fourier descriptor RF and XGB models on the 150 nm data set and surpasses these models on the 300 nm data set. Specifically, on the 300 nm data set the CNN reduces the test set mean absolute error by nearly 15 m/s relative to the XGB model. Recall that the CNN did not undergo hyperparameter tuning. As such, this model has potential for further improvement.</p>
+
+<p>Overall, larger prediction errors exist on pores scaled to 300 nm equivalent diameter compared to those scaled to 150 nm equivalent diameter. This is likely because the range of critical threshold values observed on the 300 nm data set is greater than that on the 150 nm data set; approximately 1800 m/s to 1000 m/s. However, additional investigation is required to state this with certainty. </p>
+
+<p>Finally, a partial depiction of model results is provided in Figure 1 by plotting the predicted critical threshold velocities to those obtained from the CTH simulations for the 300 nm data set random forest models using the aspect ratio-orientation, simple metrics, and Fourier coefficient input representations; subfigures a, b, and c, respectively. This figure only contains the pore shapes listed in the test set. As acknowledged, the RF model prediction error decreases when using the simple metrics and more so with the Fourier coefficients. </p>
+
+<figure>
+  <img src="{{ url_for('static', filename='imgs/test_act_vs_pred.svg') }}" alt="Comparison of actual and predicted critical thresholds.">
+  <figcaption>Fig. 1: The random forest model critical threshold velocity predictions on the test set versus the reference velocities obtained via CTH for pores scaled to 300 nm equivalent diameter when using a) the aspect ratio and orientation, b) the simple metrics, and c) the Fourier coefficients as model inputs.</figcaption>
+</figure>
+
+
+<div class="clearfix">
+<a href="{{ url_for('data') }}">  <button type="button" class='backward btn btn-outline-dark'>&#8592; Data Representation</button></a>
+
+
+</div>
+
+<h2 id="ref_m">References</h2>
+<div class="references">
+<ol>
+  <li>S. Van der Walt, J. L. Schönberger, J. Nunez-Iglesias, F. Boulogne, J. D.Warner, N. Yager, E. Gouillart, and T. Yu, “scikit-image: image processing in python,” <a href="https://doi.org/10.7717/peerj.453">https://doi.org/10.7717/peerj.453</a> (2014).</li>
+  <li>T. Chen and C. Guestrin, “XGBoost: A scalable tree  boosting system,” in Proceedings of the 22nd ACM SIGKDD International Conference on Knowledge Discovery and Data Mining, KDD '16 (ACM, New York, NY, USA, 2016) pp. 785–794</li>
+  <li>F. Cholletet al., “Keras,” <a href="https://keras.io">https://keras.io</a> (2015).</li>
+  <li>J. Bergstra, D. Yamins, and D. D. Cox, “Making a science of model search: Hyperparameter optimization in hundreds of dimensions for vision architectures,”  (2013).</li>
+  <li></li>
+  <li></li>
+  <li></li>
+  <li></li>
+</ol>
+</div>
 {% endblock %}

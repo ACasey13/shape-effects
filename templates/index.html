@@ -55,10 +55,16 @@
     <div class="col-md-8 col-12">
       <canvas id="myChart" width="100" height="100">
       </canvas>
+
       <button type="button" class="btn btn-outline-dark" id="b_reset_pore" >Reset Shape</button>
       <button type="button" class="btn btn-outline-dark" id="b_reset_zoom" disabled>Reset Zoom</button>
-      <button type="button" class="btn btn-lg btn-outline-success" id="b_predict" style="float: right">Predict</button>
+      <button type="button" class="btn btn-outline-success" id="b_predict" style="float: right; font-weight: bold;">Predict</button>
       <button type="button" class="btn btn-outline-primary" id="b_rescale" style="float: right; margin-right: .2em;">Normalize</button>
+
+      <button id='loadingModels' class="btn btn-outline-dark" style="width:100%; text-align: center; margin-top:10px;">
+        <span class='spinner-border spinner-border-sm text-danger m-1' role='status'></span><span style="color:red;"> Loading models. Please wait to make predictions.</span>
+      </button>
+
     </div>
     <div class="col-md-2 col-12" style="padding-top: 1em;">
       <b class="flabel">Critical Velocity (m/s)</b>

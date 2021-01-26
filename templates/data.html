@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+
+{% block app_header %}
+<link rel="stylesheet" href="/../static/css/main.css">
+{% endblock %}
+
+{% block app_body %}
+<h1>Data Representation</h1>
+<p>Constructing an effective ML model first requires developing a suitable machine-readable representation of the input object. These representations are commonly referred to in the literature as "descriptors", "features", "fingerprints", or "profiles". The input representation to the ML models produced here take one of four forms:
+<ol>
+  <li>an array of just the aspect ratio and orientation of the pore as determine by the Fourier ellipse method;</li>
+  <li>an array of aspect ratio and orientation augmented with the remaining simple metrics of perimeter, mean diameter, circularity, and solidity;</li>
+  <li>the Fourier coefficients;</li>
+  <li>the 2D standardized array.</li>
+</ol>
+Descriptions of these representations are given in the following subsections. </p>
+
+<h2>Aspect Ratio and Orientation</h2>
+<p>After normalization, an ellipse is fully described by specifying its aspect ratio and orientation. Likewise, the bounding box of a realistic pore shape can be used to assign an aspect ratio and orientation to each pore. An array of just the aspect ratio and orientation is the first numeric representation of the shape geometries. We note that these features minimally encode the "bulk" form of the shape effectively reducing the pore shape to an equivalent ellipse. ML models that use this input are given the appendage "ARO" for aspect ratio and orientation.  </p>
+
+<p>However, a caveat to this representation that will be shown later, is that the orientations of bounding boxes are biased toward discrete values. To overcome this deficiency the orientation and aspect ratio of realistic pores are instead determined by their Fourier ellipse described in <a href="#sFourier">Fourier Coefficients</a>.</p>
+
+<h2>Simple Metrics</h2>
+
+<p>Another way to describe the encountered pore shapes is with the descriptive metrics of perimeter, circularity, solidity, and mean diameter. The mean diameter is the multiple of two and the average distance between the pore centroid and its contour. These metrics are appended to the array of orientation and aspect ratio to create a new numeric input representation referred to as the simple metrics. While relatively cheap to compute, these simple metrics fail to uniquely define realistic pore shapes (two different shapes can have the same metrics) and cannot be inverted to reproduce the original shape. ML models that use this input will be associated with the word "Simple". </p>
+
+<h2 id="sFourier">Fourier Coefficients</h2>
+<p>Another manner in which each pore shape is represented is through complex Fourier series coefficients.<sup><a href="#ref">1-4</a></sup> For this method, the x-y coordinates of the shape contour are sampled at equidistant distances with respect to contour length. It should be noted that this sampling procedure ensures that the x versus distance and y versus distance signals are periodic. Recalling that the coordinate system of the shape contours is centered on the shape centroid, we sampled the shape contours starting at the intersection of the contour and the positive x-axis, proceeding in the counter-clockwise direction, using 1,023 points. If the more than one contour and x-axis intersection existed, then sampling began at the intersection with the largest x-value.</p>
+
+<p>The x- and y-distance information can be considered simultaneously as a single complex signal where the real and imaginary components are the x and y coordinates, respectively. Under this formulation, the periodic, complex-valued function can be represented as a Fourier series wherein the Fourier coefficients, C<sub>i</sub>, encode all the information required to reproduce the original shape contour. The Fourier coefficients are the frequency spectrum of the shape, and because the shape was sampled with 1,023 points, discrete Fourier transform routines return Fourier coefficients ranging from C<sub>-511</sub> to C<sub>511</sub>. The Fourier coefficients are complex-valued and note that because the original x- and y-distance signal is complex-valued the Fourier coefficients need not be complex conjugates as is the case when dealing with strictly real signals. Most ML models cannot readily accept complex values. As such, the Fourier coefficients are further processed by splitting them into real and imaginary components before ingestion by ML models. If all the Fourier coefficients are used, C<sub>-511</sub> to C<sub>511</sub> then this representation will be an array of length 2048.</p>
+
+<p>The Fourier coefficients demonstrate a number of useful properties. We note that simple transformations can be applied to the Fourier coefficients to translate, rotate, and scale the original contour. Additionally, the lower order harmonics describe the "bulk" form of the shape, whereas the higher order harmonics contain information about the finer spatial details of the shape. Consequently, the higher order harmonics can be filtered out to produce a smoothed version of the shape. In particular, when only the first harmonic is used (number of harmonics, n<sub>h</sub>, equals 1) the shape contour is reduced to an ellipse, herein described as the "Fourier ellipse". This suggests an alternate method to identify the shape aspect ratio and orientation by referencing the Fourier ellipse of the shape instead of the bounding box. A comparison of the aspect ratios and orientations returned by the bounding box and Fourier ellipse methods is provided in Figures 1a and 1b, respectively, for a set of realistic pore geometries scaled to an equivalent diameter of 150 nm. </p>
+
+<p> As seen, the values for aspect ratio are in good agreement, but the orientations returned by the bounding box method are biased toward values of 0, 45, 90, and 135 degrees whereas the orientations determined by inspecting the Fourier ellipse are continuous. The tendency of the bounding box to assume discrete orientations is associated with the task of placing a rectangular box into image (pixelated) space. As such, for the remainder of this work the Fourier ellipse values for aspect ratio and orientation are used when referencing the simple descriptive metrics. </p>
+
+<figure>
+  <img src="{{ url_for('static', filename='imgs/metrics_comp.svg') }}" alt="Comparison of aspect ratio and orientation determined using a bounding box and Fourier ellipse methods.">
+  <figcaption>Fig. 1: Comparison of a) aspect ratio and b) orientation of realistic pore geometries scaled to an equivalent diameter of 150 nm using the bounding box and Fourier ellipse methods. Clusters in the upper left and lower right quadrants of b) are an artifact of phase wrapping and are not indicative of gross disagreement between the methods.</figcaption>
+</figure>
+
+<p>Great care should be used when using the Fourier coefficients as they also encode information about the x and y signal mean (which is not necessarily the shape centroid) and the starting location of the parameterized path (here, the positive x-axis). </p>
+
+<p>At a high level, machine learning data sets are categorized as either "structured" (tabular) or "unstructured" (image or signal-like). In structured data, column identifiers are constant for all training instances. In unstructured data, for example, an image, every pixel need not represent the same thing. That is, in an image there is no guarantee that some arbitrary pixel &mdash; say row 2 column 40 &mdash; corresponds to the same object (like a tree, or a car) in every image. </p>
+
+<p>The pore images and paths are unstructured. Thus, the Fourier series and resultant coefficients can be consider as a way of converting the pore path to a structured representation. This is useful because many machine learning models require structured data.</p>
+
+<p>The utility of the Fourier coefficient representation of shapes in pattern recognition and machine learning tasks was recognized as early as the 1970s to classify hand-written characters and digits.<a href="#ref"><sup>5,6</sup></a> Interestingly, Zahn and Roskies<a href="#ref"><sup>6</sup></a> found that even just the amplitudes of two Fourier coefficients were sufficient to separate some digits into differentiable clusters. This suggest that for some tasks, the Fourier descriptors may provide all the feature engineering required to adequately perform classification and regression tasks. As a more recent example, Rice\ et.\ al.<a href="#ref"><sup>7</sup></a> classified colloidal nanocrystals into basic shapes &mdash; such as rod, pentagon, triangle, etc. &mdash; using Fourier coefficients. </p>
+
+<p>While the Fourier coefficients uniquely encode the complete shape contour (that is, the shape can be reproduced to its original form from the Fourier coefficients) and the frequency representation of the pores may effectively featurize the shape, they are difficult to interpret. Although each Fourier coefficient can be independently determined, when they coalesce to construct a shape small changes in a coefficient can drastically alter the final contour. As such, it is difficult to prescribe a meaning to relative changes in Fourier coefficients for all but basic shapes (square, triangle, rod, etc.).</p>
+
+<p>Finally, we note that a strong visual interpretation exists for the Fourier coefficients: because the coefficients are complex valued each can be considered a vector on the complex plane. To retrieve the original shape contour, each vector will rotate and "trace" out a circle according to its periodicity. For example, the coefficient C<sub>1</sub> is the first positive harmonic and will rotate in the counter-clockwise direction, completing one rotation every period. C<sub>-3</sub> is the third negative harmonic and completes 3 rotations per period in the clockwise direction. Note that the direction of rotation (positive coefficients rotate counter-clockwise) is a direct consequence of how the shape contour was sampled. The summation of the rotating vectors will trace out the shape contour over the course of one period.</p>
+
+<h2>Standardized Array</h2>
+<p>Deep learning (DL) is distinguished as a set of specialized algorithms constructed of layers of nonlinear processing units. The interconnected layers form a network capable of learning rich data representations.<a href="#ref"><sup>8,9</sup></a> Thus, DNNs can learn from "raw" data without having to explicitly construct a representation of the input object. A main benefit to this approach is that the model can remain relatively free from bias introduced by the choice of input representation. </p>
+
+<p>Convolutional neural networks (CNNs), a type of deep learning network, are particularly apt at image processing tasks such as object detection and segmentation. Attempting to hand-craft a robust set of feature detectors designed to detect, segment, or classify an object is a difficult task. For example, accommodating slight changes in object orientation, shading, and location necessitate the creation of additional detection rules. CNNs overcome these issues by learning local patterns in the data and building on these patterns in a hierarchical fashion to learn increasingly complex and abstract concepts.<a href="#ref"><sup>10</sup></a> Recently, CNNs have been applied to microstructure images to successfully investigate microstructure-property linkages.<a href="#ref"><sup>11-13</sup></a></p>
+
+<p>The pore shapes are originally extracted as images. These images can be minimally processed and used as inputs to a convolutional neural network. The original binary images of the pore shapes are, by definition, not normalized to size and have different widths and heights in terms of pixels. While there are algorithmic adaptions such that a CNN can make use of dissimilar input sizes the simplest approach is to standardize the input array.</p>
+
+<p>To this end, we elected a standard grid of 64 by 64 square elements. The extent (physical size) of the grid is chosen so that the largest pore path (scaled contour) &mdash; while only considering the training set &mdash; fits within the inner 62 by 62 grid elements. Once the grid extent is determined, pore paths are effectively "stamped" into the grid. For a single pore the result is an array (pixelated image) composed of 64 by 64 elements representing the scaled pore shape. It is emphasized that under the standardized array approach, relative differences in pore height and width are preserved even after pores are normalized to the same equivalent circular diameter. </p>
+
+<h2>Pore Representation Summary</h2>
+
+<p>For an example pore, the binary array and contour extracted from the SEM image are shown in Figures 2a and 2b, respectively. The pore path, after scaling, along with the pore shape when all but the first n<sub>h</sub> harmonics are filtered out is given in Figure 2c. As seen, the lower harmonics capture the bulk of the shape and when only the first harmonic is retained, the shape is reduced to its Fourier ellipse. The Fourier ellipse is used to assign an aspect ratio and orientation to the pore when using said values to describe the pore or when using the full set of simple metrics. Finally, Figure 2d shows the example pore as a standardized array to be used as an input for the CNN.</p>
+
+<figure>
+  <img src="{{ url_for('static', filename='imgs/pore_repr_adjusted.svg') }}" alt="The original binary image of the pore and various representations of it using a 2d array and Fourier descriptors.">
+  <figcaption>Fig. 2: a) The original binary image of an example pore. b) The extracted pore contour. c) The black line is the scaled path such that the pore has an equivalent circular diameter of 300nm. The salmon colored line is the scaled pore path when carrying only the first harmonic (n<sub>h</sub>=1, the "Fourier ellipse"). The navy colored line is the scaled pore path using the first three harmonics (n<sub>h</sub>=3). d) The standardized binary representation of the example pore. Dataset: 300 nm. Implicit pore id number: 400.</figcaption>
+</figure>
+
+<div class="clearfix">
+<a href="{{ url_for('background') }}">  <button type="button" class='backward btn btn-outline-dark'>&#8592; Background & Methodology</button></a>
+
+<a href="{{ url_for('models') }}">  <button type="button" class='forward btn btn-outline-dark'>Models &#8594;</button></a></div>
+
+<h2 id="ref">References</h2>
+<div class="references">
+<ol>
+  <li>H. Moellering and J. N. Rayner, "The dual axis fourier shape analysis of closed cartographic forms," The Cartographic Journal 19, 53–59 (1982).</li>
+  <li>F. P. Kuhl and C. R. Giardina, "Elliptic fourier features of a closed contour," Computer graphics and image processing 18, 236–258 (1982).</li>
+  <li>P. M. Raj and W. R. Cannon, "2-d particle shape averaging and comparison using fourier descriptors," Powder technology 104, 180–189 (1999).</li>
+  <li>H. Moellering and J. N. Rayner, "The harmonic analysis of spatial shapes using dual axis fourier shape analysis (dafsa)," Geographical Analysis13, 64–77 (1981).</li>
+  <li>G. H. Granlund, "Fourier preprocessing for hand print character recognition," IEEE transactions on computers 100, 195–201 (1972).</li>
+  <li>C. T. Zahn and R. Z. Roskies, "Fourier descriptors for plane closed curves," IEEE Transactions on computers 100, 269–281 (1972).</li>
+  <li>K. P. Rice, A. E. Saunders,  and M. P. Stoykovich, "Classifying the shape of colloidal nanocrystals by complex fourier descriptor analysis," Crystalgrowth & design 12, 825–831 (2012).</li>
+  <li>H. Chen, O. Engkvist, Y. Wang, M. Olivecrona,  and T. Blaschke, "The rise of deep learning in drug discovery," Drug Discovery Today 23, 1241–1250(2018).</li>
+  <li>A. C. Mater and M. L. Coote, "Deep learning in chemistry," J. Chem. Inf. Model. 59, 2545–2559 (2019).</li>
+  <li>C. Francois, "Deep learning with python,"  (2017).</li>
+  <li>R. Kondo, S. Yamakawa, Y. Masuoka, S. Tajima, and R.  Asahi, "Microstructure recognition using convolutional neural networks for prediction of ionic conductivity in ceramics," Acta Mater. 141, 29–38 (2017).</li>
+  <li>A. Cecen, H. Dai, Y. C. Yabansu, S. R. Kalidindi, and L. Song, "Material structure-property linkages using three-dimensional convolutional neural networks," Acta Mater. 146, 76–84 (2018).</li>
+  <li>Z. Yang, Y. C. Yabansu, R. Al-Bahrani, W.-k. Liao, A. N.  Choudhary, S. R. Kalidindi, and A. Agrawal, "Deep learning  approaches for mining structure-property linkages in high contrast composites from simulation datasets," Comput. Mater. Sci. 151, 278–287 (2018).</li>
+
+</ol>
+</div>
+
+{% endblock %}

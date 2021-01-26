@@ -2,6 +2,33 @@ import * as charting from './charting.js';
 import * as utils from './utils.js';
 
 $( document ).ready(function() {
+var sButton = $("#b_predict");
+var loading = $("#loadingModels");
+sButton.attr('disabled', 'disabled');
+var xhr = new XMLHttpRequest();
+xhr.onload = function() {
+  var status = false;
+  if (xhr.status === 200){
+      if (JSON.parse(xhr.response)['status'] === 'True') {
+        status = true;
+      }
+    }
+
+      console.log('models request returned:')
+      console.log(status);
+      if (status) {
+        sButton.removeAttr('disabled');
+        loading.attr('value', 'true').html('Models Loaded! Reload?');
+      }
+      else {
+        loading.attr('value', 'false').html('Models Failed to Load! Reload?');
+      }
+
+}
+xhr.open('GET', '/models_load', true);
+// xhr.setRequestHeader('Content-Type', 'application/json');
+xhr.send();
+
 var ctx = document.getElementById('myChart').getContext('2d');
 
 var labels = ['', '', '', '', ''];
@@ -56,7 +83,10 @@ $("#b_predict").click(function() {
     button.text('Predict').removeAttr('disabled');
   }
   const bWidth = button.width();
-  button.html("<span class='spinner-border spinner-border-sm text-success m-1' role='status'></span>").attr('disabled', 'disabled').width(bWidth);
+  console.log(bWidth);
+  button.html("<span class='spinner-border spinner-border-sm text-success m-1' role='status'></span>").attr('disabled', 'disabled');
+  // button.width(bWidth);
+  // console.log(`success width ${button.innerWidth()}`);
   xhr.open('POST', '/pred_default', true);
   xhr.setRequestHeader('Content-Type', 'application/json');
   xhr.send(JSON.stringify({"data":myChart.data.datasets[0].data,

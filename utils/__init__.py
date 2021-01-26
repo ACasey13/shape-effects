@@ -201,7 +201,7 @@ def fix_starting_loc(path):
 
     #Locate the right-most point (most positive x-position) along the contour.
     rm_path_ind = np.where(x_perim==x_perim.max())[0][0]
-    print(rm_path_ind)
+    #print(rm_path_ind)
 
     #Determine if the x_axis crossing is in the clockwise (-1) or
     # counter-clockwise (1) direction.  This is achieved by noting if the
@@ -245,7 +245,7 @@ def fix_starting_loc(path):
         #Locate the index of the path points on either side of the x-axis
         start_ind_1 = np.where(y_shift_path<0)[0][0]
         start_ind_0 = start_ind_1-1
-        print(start_ind_1)
+        #print(start_ind_1)
 
         #Determine the locations of the points on either side of the x-axis
         x_0 = x_shift_path[start_ind_0]
@@ -443,8 +443,8 @@ def fill_contours(path, size, discretization=128,
     path = np.array([path[0], path[1]], dtype=np.int).T
 
     # arbitrary shapes may exceed extent. This accounts for that.
-    path[path>127] = 127
-    path[path<0] = 127
+    path[path>discretization-1] = (discretization-1)
+    path[path<0] = 0
 
     path = np.expand_dims(path, 1)
 

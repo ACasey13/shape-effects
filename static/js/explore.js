@@ -4,7 +4,7 @@ import * as utils from './utils.js';
 $( document ).ready(function() {
 var ctx = document.getElementById('myChart').getContext('2d');
 
-var labels = ['', '', '', '', ''];
+var labels = ['&nbsp;', '&nbsp;', '&nbsp;', '&nbsp;', ''];
 var labelEls = [$("#rf"), $("#xgb"), $("#gp"),
                 $("#cnn"), $("#actual")];
 var extent = [1.790438802777571947e-05 * 10**4,
@@ -106,11 +106,17 @@ $("#b_reset_pore").click(function() {
     myChart.update();
     $('#info').attr("hidden", "hidden");
     $('#rotation').val(0);
-    $('#rf').text(labels[0]);
-    $('#xgb').text(labels[1]);
-    $('#gp').text(labels[2]);
-    $('#cnn').text(labels[3]);
+    $('#rf').html(labels[0]);
+    $('#xgb').html(labels[1]);
+    $('#gp').html(labels[2]);
+    $('#cnn').html(labels[3]);
     $('#actual').text(labels[4]);
+
+    $('#rf_o').html('&nbsp;');
+    $('#xgb_o').html('&nbsp;');
+    $('#gp_o').html('&nbsp;');
+    $('#cnn_o').html('&nbsp;');
+
     $("#nHarm").val(511);
 });
 
@@ -142,10 +148,21 @@ $("#b_predict").click(function() {
   xhr.onload = function() {
     if (xhr.status === 200){
         var data = JSON.parse(xhr.response);
+        var rf_o = $('#rf').html();
+        var xgb_o = $('#xgb').html();
+        var gp_o = $('#gp').html();
+        var cnn_o = $('#cnn').html();
+
+        $('#rf_o').html(rf_o);
+        $('#xgb_o').html(xgb_o);
+        $('#gp_o').html(gp_o);
+        $('#cnn_o').html(cnn_o);
+
         $('#rf').text(data['rf']);
         $('#xgb').text(data['xgb']);
         $('#gp').html(data['gp'] + "&#177;"+data['gp_std']+"<sup>&#167;</sup>");
         $('#cnn').text(data['cnn']);
+
     }
     button.text('Predict').removeAttr('disabled');
   }

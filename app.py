@@ -26,9 +26,11 @@ login = LoginManager(app)
 login.login_view = 'user_login'
 bootstrap = Bootstrap(app)
 
-print('loading models...')
-from load_models import *
-print('models loaded...')
+models_loaded = False
+
+# print('loading models...')
+# from load_models import *
+# print('models loaded...')
 
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -83,6 +85,10 @@ def explore():
 @app.route('/background')
 def background():
     return render_template('background.html', title='Background')
+
+@app.route('/data_repr')
+def data():
+    return render_template('data.html', title='Data Representation')
 
 @app.route('/models')
 def models():
@@ -157,11 +163,11 @@ def get_default():
 def pred_default():
     resp = request.json
     x, img = utils.preprocess_input(resp['data'], resp['size'], n_h=30)
-    rfr_pred = rfr_300.predict(x)[0]
-    xgb_pred = xgb_300.predict(x)[0]
-    gpr_pred, gpr_var = gpr_300.predict(x)
-    gpr_pred = gpr_pred[0][0] + gpr_300_shift
-    cnn_pred = cnn_300.predict(img)[0][0]
+    rfr_pred = load_models.rfr_300.predict(x)[0]
+    xgb_pred = load_models.xgb_300.predict(x)[0]
+    gpr_pred, gpr_var = load_models.gpr_300.predict(x)
+    gpr_pred = gpr_pred[0][0] + load_models.gpr_300_shift
+    cnn_pred = load_models.cnn_300.predict(img)[0][0]
     response = app.response_class(
     response=json.dumps({'rf': str(rfr_pred)[:2],
                          'xgb': str(xgb_pred)[:2],
@@ -218,5 +224,18 @@ def filter_pore():
     mimetype='application/json')
     return response
 
+@app.route('/models_load', methods=['GET'])
+def models_load():
+    global models_loaded
+    if not models_loaded:
+        global load_models
+        import load_models
+        models_loaded = True;
+    response = app.response_class(
+    response=json.dumps({'status':str(models_loaded)}),
+    status=200,
+    mimetype='application/json')
+    return response
+
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=False)

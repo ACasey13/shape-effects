@@ -4,6 +4,7 @@ import * as utils from './utils.js';
 $( document ).ready(function() {
 var sButton = $("#b_predict");
 var loading = $("#loadingModels");
+loading.attr("value", "loading");
 sButton.attr('disabled', 'disabled');
 var xhr = new XMLHttpRequest();
 xhr.onload = function() {
@@ -51,6 +52,10 @@ $("#b_reset_pore").click(function() {
     $('#cnn').text(labels[3]);
     $('#actual').text(labels[4]);
     $("#nHarm").val(511);
+});
+
+loading.click(function() {
+    utils.modelsLoad(loading, sButton);
 });
 
 $("#b_reset_zoom").click(function() {

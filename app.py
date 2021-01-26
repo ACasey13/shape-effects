@@ -226,11 +226,14 @@ def filter_pore():
 
 @app.route('/models_load', methods=['GET'])
 def models_load():
-    global models_loaded
-    if not models_loaded:
-        global load_models
-        import load_models
-        models_loaded = True;
+    try:
+        global models_loaded
+        if not models_loaded:
+            global load_models
+            import load_models
+            models_loaded = True;
+    except:
+        pass
     response = app.response_class(
     response=json.dumps({'status':str(models_loaded)}),
     status=200,

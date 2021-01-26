@@ -35,6 +35,47 @@ xhr.send(JSON.stringify({"n_h": n_h,
                          "data":mc.data.datasets[0].data}));
 }
 
+export function modelsLoad(loading, sButton) {
+  if (loading.attr("value") == 'loading') {
+    console.log('models loading... do nothing');
+    loading.addClass("shake");
+    setTimeout(function(){loading.removeClass("shake")},500);
+  }
+  else {
+    var xhr = new XMLHttpRequest();
+    xhr.onload = function() {
+      var status = false;
+      if (xhr.status === 200){
+          if (JSON.parse(xhr.response)['status'] === 'True') {
+            status = true;
+          }
+        }
+
+          console.log('models request returned on button click:')
+          console.log(status);
+          if (status) {
+            setTimeout(function() {
+              sButton.removeAttr('disabled');
+              loading.attr('value', 'true').html('Models Loaded! Reload?');
+            }, 1000);
+
+          }
+          else {
+            loading.attr('value', 'false').html('Models Failed to Load! Reload?');
+          }
+
+    }
+    xhr.open('GET', '/models_load', true);
+    // xhr.setRequestHeader('Content-Type', 'application/json');
+
+    loading.attr("value", "loading").html("<span class='spinner-border spinner-border-sm text-danger m-1' role='status'></span><span style='color:red;'> Loading models. Please wait to make predictions.</span>");
+    sButton.attr('disabled', 'disabled');
+    xhr.send();
+
+  }
+}
+
+
 export function dataToArray(pts){
     var arr = [[],[]];
     for (let i=0; i < pts.length; i++){

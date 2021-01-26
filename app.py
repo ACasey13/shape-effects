@@ -5,12 +5,15 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin
 from flask_login import current_user, login_user
 from flask_login import logout_user, login_required
+from flask_wtf import FlaskForm
+from flask_admin import Admin, AdminIndexView, expose
+from wtforms import StringField, PasswordField, BooleanField, SubmitField, TextAreaField
+from wtforms.validators import DataRequired, ValidationError, Email, EqualTo
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.urls import url_parse
-from forms import LoginForm
+from flask_admin.contrib.sqla import ModelView
 from flask_bootstrap import Bootstrap
-# predictive model imports
 import os
 import numpy as np
 import utils
@@ -21,6 +24,7 @@ app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///main.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = 'truly_phenomenal_shapes'
+app.config['FLASK_ADMIN_SWATCH'] = 'yeti'
 db = SQLAlchemy(app)
 login = LoginManager(app)
 login.login_view = 'user_login'
@@ -28,23 +32,77 @@ bootstrap = Bootstrap(app)
 
 models_loaded = False
 
-# print('loading models...')
-# from load_models import *
-# print('models loaded...')
-
+#############################################
+####### Models ##############################
+#############################################
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(64), nullable=False, unique=True)
+    first_name = db.Column(db.String(64), nullable=False)
+    last_name = db.Column(db.String(64), nullable=False)
+    email = db.Column(db.String(120), nullable=False, unique=True)
+    organization = db.Column(db.String(120))
+    purpose = db.Column(db.String(512))
     hashed_password = db.Column(db.String(128), nullable=False)
 
     def __repr__(self):
-        return '<User %r>' % self.username
+        return 'f<User {self.first_name} {self.last_name}>'
 
     def set_password(self, password):
         self.hashed_password = generate_password_hash(password)
 
     def check_password(self, password):
         return check_password_hash(self.hashed_password, password)
+
+
+#############################################
+####### Admin ###############################
+#############################################
+class MyAdminIndexView(AdminIndexView):
+    @expose('/')
+    def index(self):
+        if current_user.is_authenticated and (current_user.email == 'alex.casey.13@gmail.com'):
+            return super(MyAdminIndexView, self).index()
+        flash("Must sign in as admin to view admin page!")
+        if current_user.is_authenticated:
+            return redirect(url_for('explore'))
+        return redirect(url_for('user_login'))
+
+admin = Admin(app, name='Shape Effects Admin', index_view=MyAdminIndexView(), template_mode='bootstrap3')
+admin.add_view(ModelView(User, db.session))
+
+#############################################
+####### Forms ###############################
+#############################################
+
+class LoginForm(FlaskForm):
+    email = StringField('Email', validators=[DataRequired(), Email()])
+    password = PasswordField('Password', validators=[DataRequired()])
+    submit = SubmitField('Sign In')
+
+class RegistrationForm(FlaskForm):
+    first_name = StringField('First Name', validators=[DataRequired()])
+    last_name = StringField('First Name', validators=[DataRequired()])
+    email = StringField('Email', validators=[DataRequired(), Email()])
+    password = PasswordField('Password', validators=[DataRequired()])
+    password2 = PasswordField(
+        'Repeat Password', validators=[DataRequired(), EqualTo('password')])
+    organization = StringField('Organization',)
+    purpose = TextAreaField('Purpose of Use',)
+    submit = SubmitField('Register')
+
+    # def validate_username(self, username):
+    #     user = User.query.filter_by(username=username.data).first()
+    #     if user is not None:
+    #         raise ValidationError('Please use a different username.')
+
+    def validate_email(self, email):
+        user = User.query.filter_by(email=email.data).first()
+        if user is not None:
+            raise ValidationError('Email address already in use.')
+
+#############################################
+####### Views ###############################
+#############################################
 
 @login.user_loader
 def load_user(id):
@@ -61,16 +119,30 @@ def user_login():
         return redirect(url_for('index'))
     form = LoginForm()
     if form.validate_on_submit():
-        user = User.query.filter_by(username=form.username.data).first()
+        user = User.query.filter_by(email=form.email.data).first()
         if user is None or not user.check_password(form.password.data):
-            flash('Invalid username or password.')
+            flash('Invalid email or password.')
             return redirect(url_for('user_login'))
         login_user(user, remember=False,)
         next_page = request.args.get('next')
         if not next_page or url_parse(next_page).netloc != '':
-            next_page = url_for('index')
+            next_page = url_for('explore')
         return redirect(next_page)
     return render_template('login.html', title='Sign In', form=form)
+
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if current_user.is_authenticated:
+        return redirect(url_for('index'))
+    form = RegistrationForm()
+    if form.validate_on_submit():
+        user = User(first_name=form.first_name.data, last_name=form.last_name.data, email=form.email.data, organization=form.organization.data, purpose=form.purpose.data)
+        user.set_password(form.password.data)
+        db.session.add(user)
+        db.session.commit()
+        flash(f'Congratulations {user.first_name}, you are now a registered user!')
+        return redirect(url_for('user_login'))
+    return render_template('register.html', title='Register', form=form)
 
 @app.route('/logout')
 def user_logout():
@@ -185,15 +257,15 @@ def predict():
     resp = request.json
     x, img = utils.preprocess_input(resp['data'], resp['size'], n_h=30)
     print('data has been preprocessed')
-    rfr_pred = rfr_300.predict(x)[0]
+    rfr_pred = load_models.rfr_300.predict(x)[0]
     print('rf pred: {}'.format(rfr_pred))
-    xgb_pred = xgb_300.predict(x)[0]
+    xgb_pred = load_models.xgb_300.predict(x)[0]
     print('xgb_pred: {}'.format(xgb_pred))
-    gpr_pred, gpr_var = gpr_300.predict(x)
-    gpr_pred = gpr_pred[0][0] + gpr_300_shift
+    gpr_pred, gpr_var = load_models.gpr_300.predict(x)
+    gpr_pred = gpr_pred[0][0] + load_models.gpr_300_shift
     gpr_std = gpr_var[0][0]
     print('gpr_pred: {}'.format(gpr_pred))
-    cnn_pred = cnn_300.predict(img)[0][0]
+    cnn_pred = load_models.cnn_300.predict(img)[0][0]
     print('cnn_pred: {}'.format(cnn_pred))
     response = app.response_class(
     response=json.dumps({'rf': str(round(rfr_pred,1)),

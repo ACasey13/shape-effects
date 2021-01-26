@@ -13,6 +13,7 @@ from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.urls import url_parse
 from flask_admin.contrib.sqla import ModelView
+from flask_mail import Mail, Message
 from flask_bootstrap import Bootstrap
 import os
 import numpy as np
@@ -29,6 +30,7 @@ db = SQLAlchemy(app)
 login = LoginManager(app)
 login.login_view = 'user_login'
 bootstrap = Bootstrap(app)
+mail = Mail(app)
 
 models_loaded = False
 
@@ -140,6 +142,14 @@ def register():
         user.set_password(form.password.data)
         db.session.add(user)
         db.session.commit()
+        try:
+            msg = Message("New SE User!",
+            sender=("Alex Casey", 'alex@shapeeffects.com'),
+            recipients=['alex.casey.13@gmail.com'])
+            msg.body = f"The following account was created at Shape Effects:\nUser: {user.first_name} {user.last_name}\nEmail: {user.email}\nOrganization: {user.organization}\nPurpose: {user.purpose}"
+            mail.send(msg)
+        except:
+            print(f'New user {user.first_name} {user.last_name} ({user.email}) (org: {user.organization}) created.\n Failed to send email to admin.')
         flash(f'Congratulations {user.first_name}, you are now a registered user!')
         return redirect(url_for('user_login'))
     return render_template('register.html', title='Register', form=form)

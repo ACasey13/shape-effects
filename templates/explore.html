@@ -58,20 +58,26 @@
       </canvas>
       <button type="button" class="btn btn-outline-dark" id="b_reset_pore" >Reset Shape</button>
       <button type="button" class="btn btn-outline-dark" id="b_reset_zoom" disabled>Reset Zoom</button>
-      <button type="button" class="btn btn-lg btn-outline-success" id="b_predict" style="float: right">Predict</button>
+      <button type="button" class="btn btn-outline-success" id="b_predict" style="float: right; font-weight: bold;">Predict</button>
       <button type="button" class="btn btn-outline-primary" id="b_rescale" style="float: right; margin-right: .2em;">Normalize</button>
+
+      <button id='loadingModels' class="btn btn-outline-dark" style="width:100%; text-align: center; margin-top:10px;">
+        <span class='spinner-border spinner-border-sm text-danger m-1' role='status'></span><span style="color:red;"> Loading models. Please wait to make predictions.</span>
+      </button>
+
     </div>
     <div class="col-md-2 col-12" style="padding-top: 1em;">
       <b class="flabel">Critical Velocity (m/s)</b>
-      <b class="flabel" style="text-decoration: underline">Predicted</b>
+      <div>
+      <b class="flabel"><span style="text-decoration: underline">Predicted</span></b> (gray values are from the last prediction)</div>
 
-      <p>RF: <span style="float:right;" id='rf'>&nbsp;</span><br><span id='rf_o' style="display: block; text-align:right;">&nbsp;</span></p>
+      <p>RF: <span style="float:right;" id='rf'>&nbsp;</span><br><span id='rf_o' style="display: block; text-align:right; color:gray;">&nbsp;</span></p>
 
-      <p>XGB: <span id='xgb' style="float:right;">&nbsp;</span><br><span id='xgb_o' style="display: block; text-align:right;">&nbsp;</span></p>
+      <p>XGB: <span id='xgb' style="float:right;">&nbsp;</span><br><span id='xgb_o' style="display: block; text-align:right; color:gray;">&nbsp;</span></p>
 
-      <p>GP: <span id="gp" style="float:right;">&nbsp;</span><br><span id='gp_o' style="display: block; text-align:right;">&nbsp;</span></p>
+      <p>GP: <span id="gp" style="float:right;">&nbsp;</span><br><span id='gp_o' style="display: block; text-align:right; color: gray;">&nbsp;</span></p>
 
-      <p>CNN: <span id="cnn" style="float:right;">&nbsp;</span><br><span id='cnn_o' style="display: block; text-align:right;">&nbsp;</span></p>
+      <p>CNN: <span id="cnn" style="float:right;">&nbsp;</span><br><span id='cnn_o' style="display: block; text-align:right; color: gray;">&nbsp;</span></p>
 
       <div>
       <b class="flabel"><sup>*</sup><span style="text-decoration: underline">Actual</span></b>

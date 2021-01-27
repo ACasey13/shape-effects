@@ -149,7 +149,7 @@ def register():
             msg.body = f"The following account was created at Shape Effects:\nUser: {user.first_name} {user.last_name}\nEmail: {user.email}\nOrganization: {user.organization}\nPurpose: {user.purpose}"
             mail.send(msg)
         except:
-            print(f'New user {user.first_name} {user.last_name} ({user.email}) (org: {user.organization}) created.\n Failed to send email to admin.')
+            print(f'New user {user.first_name} {user.last_name} ({user.email}) (org: {user.organization}) created.\nFailed to send email to admin.')
         flash(f'Congratulations {user.first_name}, you are now a registered user!')
         return redirect(url_for('user_login'))
     return render_template('register.html', title='Register', form=form)
@@ -190,7 +190,7 @@ def get_pore():
                 act = np.load(os.path.join('data', 'labels_300nm.npy'))[id-1]
                 path = utils.get_pts(pore, diameter=300,
                                subsample=5)
-                set = '(train)'
+                set = '' #update to train, valid or test
                 labels = ['', '', '', '', str(act)]
             else:
                 msg = 'Pore index not valid!'
@@ -200,7 +200,7 @@ def get_pore():
                 act = np.load(os.path.join('data', 'labels_150nm.npy'))[id-1]
                 path = utils.get_pts(pore, diameter=150,
                                subsample=5)
-                set = '(train)'
+                set = '' #update to train, valid or test
                 labels = ['', '', '', '', str(act)]
             else:
                 msg = 'Pore index not valid!'
@@ -231,7 +231,7 @@ def get_default():
     act = np.load(os.path.join('data', 'labels_300nm.npy'))[2]
     path = utils.get_pts(pore, diameter=300,
                                subsample=5)
-    set = '(train)'
+    set = '' #update to train, valid or test
     labels = ['', '', '', '', str(act)]
     response = app.response_class(
     response=json.dumps({'path':path,

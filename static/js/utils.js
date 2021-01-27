@@ -28,7 +28,7 @@ xhr.onload = function() {
   button.html('<sup>&#8224;</sup>Filter Pore').removeAttr('disabled');
 }
 const bWidth = button.width();
-button.html("<span class='spinner-border spinner-border-sm text-primary m-1' role='status'></span>").attr('disabled', 'disabled').width(bWidth);
+button.html("<span class='spinner-border spinner-border-sm text-primary m-1' role='status'></span>").attr('disabled', 'disabled');
 xhr.open('POST', '/filter', true);
 xhr.setRequestHeader('Content-Type', 'application/json');
 xhr.send(JSON.stringify({"n_h": n_h,

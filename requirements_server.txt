@@ -245,7 +245,7 @@ pyflakes==2.1.1
 pyflakes3k==0.4.3
 pygal==2.4.0
 pygeoip==0.3.2
-Pygments==2.3.1
+Pygments==2.7.4
 PyGObject==3.34.0
 pyhdf==0.10.1
 PyJWT==1.7.1

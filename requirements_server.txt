@@ -51,7 +51,7 @@ coverage==4.5.4
 cryptography==2.8
 cssselect==1.1.0
 cssselect2==0.2.2
-cvxopt==1.2.3
+cvxopt==1.2.7
 cycler==0.10.0
 Cython==0.29.13
 dask==2.6.0

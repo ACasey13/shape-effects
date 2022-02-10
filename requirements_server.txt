@@ -334,7 +334,7 @@ tables==3.6.1
 Tempita==0.5.2
 tempora==1.14.1
 tensorboard==2.0.0
-tensorflow==2.0.0
+tensorflow==2.5.3
 tensorflow-estimator==2.0.1
 termcolor==1.1.0
 terminado==0.8.2
